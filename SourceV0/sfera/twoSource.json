@@ -1,0 +1,68 @@
+{
+  "name": "Two datasets source",
+  "owner": "Mohamed Maouche <mohamed.maouche@insa-lyon.fr",
+  "graph": [
+    {
+      "op": "EventSource",
+      "name": "EventSourceKD",
+      "inputs": {
+        "url": {
+          "param": "url",
+          "default_value": "/data/cabSpotting"
+        },
+        "kind": {
+          "value": "csv"
+        }
+      }
+    },
+    {
+      "op": "EventSource",
+      "name": "EventSourceUD",
+      "inputs": {
+        "url": {
+          "param": "url",
+          "default_value": "/data/cabSpotting"
+        },
+        "kind": {
+          "value": "csv"
+        }
+      }
+    },
+    {
+      "op": "MatMatching",
+      "name": "MatMatching",
+      "inputs": {
+        "train": {
+          "reference": "EventSourceKD/data"
+        },
+        "test": {
+          "reference": "EventSourceUD/data"
+        },
+        "distanceType": {
+          "param": "distanceType",
+          "default_value": -51
+        },
+        "cellSize": {
+          "param": "cellSize",
+          "default_value": "800.meters"
+        },
+        "matrixType": {
+          "param": "matrixType",
+          "default_value": "full"
+        },
+        "lat1": {
+          "value": "-61"
+        },
+        "lng1": {
+          "value": "-131"
+        },
+        "lat2": {
+          "value": "80"
+        },
+        "lng2": {
+          "value": "171"
+        }
+      }
+    }
+  ]
+}
