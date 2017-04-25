@@ -1,0 +1,95 @@
+{
+  "name": "Geo-indistinguishability workflow",
+  "owner": "Vincent Primault <vincent.primault@liris.cnrs.fr>",
+  "graph": [
+    {
+      "op": "EventSource",
+      "inputs": {
+        "url": "~/data/cabspotting",
+        "kind": "cabspotting"
+      }
+    },
+    {
+      "op": "TemporalSampling",
+      "inputs": {
+        "duration": "30.seconds",
+        "data": {
+          "reference": "EventSource/data"
+        }
+      }
+    },
+    {
+      "op": "DurationSplitting",
+      "inputs": {
+        "duration": "1.day",
+        "data": {
+          "reference": "TemporalSampling/data"
+        }
+      }
+    },
+    {
+      "op": "EnforceDuration",
+      "inputs": {
+        "minDuration": "2.hours",
+        "data": {
+          "reference": "DurationSplitting/data"
+        }
+      }
+    },
+    {
+      "op": "BasicAnalyzer",
+      "inputs": {
+        "data": {
+          "reference": "MinDuration/data"
+        }
+      }
+    },
+    {
+      "op": "PoisAnalyzer",
+      "inputs": {
+        "diameter": "200.meters",
+        "duration": "15.minutes",
+        "data": {
+          "reference": "EnforceDuration/data"
+        }
+      }
+    },
+    {
+      "op": "GeoIndistinguishability",
+      "inputs": {
+        "epsilon": 0.001,
+        "data": {
+          "reference": "EnforceDuration/data"
+        }
+      }
+    },
+    {
+      "op": "PoisRetrieval",
+      "name": "privacy",
+      "inputs": {
+        "train": {
+          "reference": "EnforceDuration"
+        },
+        "test": {
+          "reference": "GeoIndistinguishability"
+        },
+        "diameter": "200.meters",
+        "duration": "15.minutes",
+        "threshold": "100.meters"
+      }
+    },
+    {
+      "op": "SpatialDistortion",
+      "name": "utility",
+      "inputs": {
+        "train": {
+          "reference": "EnforceDuration"
+        },
+        "test": {
+          "reference": "GeoIndistinguishability"
+        },
+        "interpolate": false
+      }
+    }
+  ]
+}

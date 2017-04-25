@@ -1,0 +1,29 @@
+{
+  "id": "privamov.gateway-service:0.1",
+  "image": "liris-vm-27:5050/privamov-gateway-service",
+  "ports": {
+    "http": {
+      "externalPort": 8888,
+      "internalPort": 8888,
+      "protocol": "tcp"
+    },
+    "http-admin": {
+      "externalPort": 9990,
+      "internalPort": 9990,
+      "protocol": "tcp"
+    }
+  },
+  "command": [
+    "-viz.stores",
+    "privamov"
+  ],
+  "env": {
+    "QUERULOUS__PRIVAMOV_HOST": "liris-vm-60.univ-lyon1.fr",
+    "QUERULOUS__PRIVAMOV_BASE": "privamov",
+    "QUERULOUS__PRIVAMOV_USER": "priva"
+  },
+  "healthCheck": {
+    "type": "tcp",
+    "port": "http-admin"
+  }
+}

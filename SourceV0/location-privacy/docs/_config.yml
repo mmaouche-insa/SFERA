@@ -1,0 +1,11 @@
+# Site settings
+title: Accio
+email: vincent.primault@liris.cnrs.fr
+description: >
+  Accio is a location privacy framework.
+baseurl: ""
+url: "http://yourdomain.com"
+nav: index
+
+# Build settings
+markdown: kramdown

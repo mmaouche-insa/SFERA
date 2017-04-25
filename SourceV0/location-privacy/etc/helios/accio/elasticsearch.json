@@ -1,0 +1,28 @@
+{
+  "id": "accio.elasticsearch:0.1",
+  "image": "elasticsearch:2.3",
+  "command": [
+    "-Dnetwork.host=0.0.0.0",
+    "-Dhttp.cors.enabled=true",
+    "-Dhttp.cors.allow-origin='*'"
+  ],
+  "ports": {
+    "http": {
+      "externalPort": 9201,
+      "internalPort": 9200,
+      "protocol": "tcp"
+    },
+    "tcp-admin": {
+      "externalPort": 9301,
+      "internalPort": 9300,
+      "protocol": "tcp"
+    }
+  },
+  "volumes": {
+    "/usr/share/elasticsearch/data": "/data/accio/elasticsearch"
+  },
+  "healthCheck": {
+    "type": "tcp",
+    "port": "tcp-admin"
+  }
+}

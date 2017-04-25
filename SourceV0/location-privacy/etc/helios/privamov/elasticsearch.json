@@ -1,0 +1,33 @@
+{
+  "id": "privamov.elasticsearch:0.2",
+  "image": "elasticsearch:2.3",
+  "command": [
+    "-Dnetwork.host=0.0.0.0",
+    "-Dhttp.cors.enabled=true",
+    "-Dhttp.cors.allow-origin='*'",
+    "-Dscript.inline=true",
+    "-Dscript.indexed=true"
+  ],
+  "ports": {
+    "http": {
+      "externalPort": 9200,
+      "internalPort": 9200,
+      "protocol": "tcp"
+    },
+    "tcp-admin": {
+      "externalPort": 9300,
+      "internalPort": 9300,
+      "protocol": "tcp"
+    }
+  },
+  "volumes": {
+    "/usr/share/elasticsearch/data": "/data/privamov/elasticsearch"
+  },
+  "env": {
+    "JAVA_OPTS": "-Xmx4G"
+  },
+  "healthCheck": {
+    "type": "tcp",
+    "port": "tcp-admin"
+  }
+}

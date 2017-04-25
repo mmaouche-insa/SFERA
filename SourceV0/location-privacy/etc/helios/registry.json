@@ -1,0 +1,28 @@
+{
+  "id": "registry:0.1",
+  "image": "registry:2",
+  "command": [
+    "-Dnetwork.host=0.0.0.0",
+    "-Dhttp.cors.enabled=true",
+    "-Dhttp.cors.allow-origin='*'"
+  ],
+  "ports": {
+    "http": {
+      "externalPort": 5000,
+      "internalPort": 5000,
+      "protocol": "tcp"
+    }
+  },
+  "env": {
+    "REGISTRY_HTTP_TLS_CERTIFICATE": "/certs/server.crt",
+    "REGISTRY_HTTP_TLS_KEY": "/certs/server.key"
+  },
+  "volumes": {
+    "/var/lib/registry": "/data/registry",
+    "/certs": "/data/registry-certs"
+  },
+  "healthCheck": {
+    "type": "tcp",
+    "port": "http"
+  }
+}

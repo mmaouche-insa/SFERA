@@ -1,0 +1,20 @@
+{
+  "workflow": "./geoind-workflow.json",
+  "runs": 3,
+  "name": "SRDS'16 geo-indistinguishability exploration experiment",
+  "tags": [
+    "srds16",
+    "geoind"
+  ],
+  "params": {
+    "GeoIndistinguishability/epsilon": {
+      "list": [
+        0.01,
+        0.02,
+        0.02,
+        0.03,
+        0.05
+      ]
+    }
+  }
+}

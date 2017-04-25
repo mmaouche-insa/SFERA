@@ -1,0 +1,18 @@
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <a href="{{ "/" | prepend: site.baseurl }}" class="navbar-brand">{{ site.title }}</a>
+    </div>
+    <ul class="nav navbar-nav pull-right">
+      <li{% if page.nav == "docs" %} class="active"{% endif %}>
+        <a href="{{ "/docs/basics/overview.html" | prepend: site.baseurl }}">Docs</a>
+      </li>
+      <li{% if page.nav == "research" %} class="active"{% endif %}>
+      <a href="{{ "/research.html" | prepend: site.baseurl }}">Research</a>
+      </li>
+      <li>
+        <a href="https://github.com/pvcnt/location-privacy">GitHub</a>
+      </li>
+    </ul>
+  </div>
+</div>
