@@ -1,0 +1,132 @@
+{
+  "name": "One dataset source",
+  "owner": "Mohamed Maouche <mohamed.maouche@insa-lyon.fr",
+  "graph": [
+    {
+      "op": "EventSource",
+      "inputs": {
+        "url": {
+          "param": "urlES",
+          "default_value": "/data/cabSpotting"
+        },
+        "kind": {
+          "value": "csv"
+        }
+      }
+    },
+    {
+      "op": "SelectPortionSplitting",
+      "name": "SelectPortionSplittingtrain",
+      "inputs": {
+        "data": {
+          "reference": "EventSource/data"
+        },
+        "start": {
+          "param": "startTrain",
+          "default_value": 0.0
+        },
+        "end": {
+          "param": "endTrain",
+          "default_value": 0.5
+        }
+      }
+    },
+    {
+      "op": "SelectPortionSplitting",
+      "name": "SelectPortionSplittingtest",
+      "inputs": {
+        "data": {
+          "reference": "EventSource/data"
+        },
+        "start": {
+          "param": "startTest",
+          "default_value": 0.5
+        },
+        "end": {
+          "param": "endTest",
+          "default_value": 1
+        }
+      }
+    },
+    {
+      "op": "MatMatching",
+      "name": "APAttack",
+      "inputs": {
+        "train": {
+          "reference": "SelectPortionSplittingtrain/output"
+        },
+        "test": {
+          "reference": "SelectPortionSplittingtest/output"
+        },
+        "distanceType": {
+          "param": "distanceType",
+          "default_value": -51
+        },
+        "cellSize": {
+          "param": "cellSize",
+          "default_value": "800.meters"
+        },
+        "matrixType": {
+          "param": "matrixType",
+          "default_value": "full"
+        },
+        "lat1": {
+          "value": "-61"
+        },
+        "lng1": {
+          "value": "-131"
+        },
+        "lat2": {
+          "value": "80"
+        },
+        "lng2": {
+          "value": "171"
+        }
+      }
+    },
+    {
+      "op": "PoisReident",
+      "name" : "POIAttack",
+      "inputs": {
+        "diameter" : {"param": "diameter" ,
+                    "default_value" : "200.meters"
+                    },
+               "duration" : {"param": "duration" ,
+                    "default_value" : "60.minutes"
+                    },
+        "train": {
+          "reference": "SelectPortionSplittingtrain/output"
+        },
+        "test": {
+          "reference": "SelectPortionSplittingtest/output"
+        }
+      }
+    },
+      {
+      "op": "MMCReIdent",
+      "name" : "PITAttack",
+      "inputs": {
+        "train": {
+          "reference": "SelectPortionSplittingtrain/output"
+        },
+        "test": {
+          "reference": "SelectPortionSplittingtest/output"
+        },
+        "duration" : {"param": "duration" ,
+                    "default_value" : "1.hours"
+                    },
+           "diameter" : {"param": "diameter" ,
+                    "default_value" : "200.meters"
+                    },
+                               "minPts" : {"param": "minPts" ,
+                    "default_value" : 1
+                    },
+        "attack" : {"param": "attack" ,
+                    "default_value" : "gambs"
+                    }
+    
+    
+      }
+    }
+  ]
+}
