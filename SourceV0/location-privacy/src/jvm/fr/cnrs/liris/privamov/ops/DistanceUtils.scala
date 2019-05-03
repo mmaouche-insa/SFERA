@@ -137,7 +137,7 @@ private[ops] object DistanceUtils {
     }
     d1
   }
-
+ // Actually Jensen-Shanon
   def dtopsoe(m1: MatrixLight[Double], m2: MatrixLight[Double]): Double = {
     var top = 0.0
     var ln1 = 0.0
@@ -150,8 +150,10 @@ private[ops] object DistanceUtils {
         ln2 = if (m2(i, j) == 0) 0 else m2(i, j) * math.log(2 * m2(i, j) / (m1(i, j) + m2(i, j)))
         d1 = d1 + ln1 + ln2
     }
-    d1
+    0.5*d1/math.log(2.0)
   }
+
+
 
   def dDice(m1: MatrixLight[Double], m2: MatrixLight[Double]): Double = {
     var top = 0.0

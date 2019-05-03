@@ -101,11 +101,13 @@ class SparkleEnv(level: Int) extends StrictLogging {
    */
   @throws[SparkleJobException]
   private[sparkle] def submit[T, U: ClassTag](frame: DataFrame[T], keys: Seq[String], processor: (String, Iterator[T]) => U): Array[U] = {
+    //println(s"event submitted")
     if (keys.isEmpty) {
       Array.empty
     } else if (keys.size == 1) {
       Array(processor(keys.head, frame.load(keys.head)))
     } else {
+
       val futures = keys.map(key => Future(processor(key, frame.load(key))))
       val future = Future.sequence(futures).map(_.toArray)
       Await.ready[Array[U]](future, Duration.Inf)
@@ -115,6 +117,36 @@ class SparkleEnv(level: Int) extends StrictLogging {
       }
     }
   }
+
+/*
+  /**
+    * Submit a job to this environment using a Map Equivalent.
+    *
+    * @param map
+    * @param processor
+    * @tparam T
+    * @tparam U
+    * @throws SparkleJobException
+    * @return
+    */
+  @throws[SparkleJobException]
+  def submitMapEquivalent[T, U: ClassTag](map: Map[String,T], processor: (String, Iterator[T]) => U): Array[U] = {
+    val keys = map.keys.toSeq
+    if (keys.isEmpty) {
+      Array.empty
+    } else if (keys.size == 1) {
+      Array(processor(keys.head, map(keys.head)))
+    } else {
+      val futures = keys.map(key => Future(processor(key, map(key))))
+      val future = Future.sequence(futures).map(_.toArray)
+      Await.ready[Array[U]](future, Duration.Inf)
+      future.value.get match {
+        case Success(res) => res
+        case Failure(e) => throw new SparkleJobException(null, e)
+      }
+    }
+  }
+*/
 }
 
 class SparkleJobException(frame: DataFrame[_], cause: Throwable) extends Exception(s"Error while processing $frame", cause)

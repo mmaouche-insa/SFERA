@@ -18,6 +18,8 @@
 
 package fr.cnrs.liris.privamov.ops
 
+import java.io.File
+
 import com.google.inject.Inject
 import fr.cnrs.liris.accio.core.api._
 import fr.cnrs.liris.common.geo.Distance
@@ -36,16 +38,32 @@ import fr.cnrs.liris.privamov.core.sparkle.{DataFrame, SparkleEnv}
 @Op(
   category = "metric",
   help = "Re-identification attack using POIs a the discriminating information.")
-class PoisReidentOp @Inject()(env: SparkleEnv) extends Operator[ReidentificationIn, ReidentificationOut] with SparkleOperator {
+class PoisReidentOp  extends Operator[ReidentificationIn, ReidentificationOut] with SparkleOperator {
 
   override def execute(in: ReidentificationIn, ctx: OpContext): ReidentificationOut = {
     val trainDs = read(in.train, env)
     val testDs = read(in.test, env)
     val trainClusterer = new DTClusterer(in.duration, in.diameter)
     val testClusterer = new DTClusterer(in.testDuration.getOrElse(in.duration), in.testDiameter.getOrElse(in.diameter))
-    val trainPois = getPois(trainDs, trainClusterer)
 
-    val testPois = getPois(testDs, testClusterer)
+
+//    val trainPois = getPois(trainDs, trainClusterer)
+ //   val testPois = getPois(testDs, testClusterer)
+
+
+  /*  val trainPoisdata = getPOisDataFrame(trainDs, trainClusterer)
+    val testPoisdata = getPOisDataFrame(testDs, testClusterer)
+
+
+    val trainPois = getPOIsFromDataFrame(trainPoisdata)
+    val testPois = getPOIsFromDataFrame(testPoisdata)
+*/
+
+  val trainPoiSet = getPOISetDataFrame(trainDs,trainClusterer)
+    val testPoiSet = getPOISetDataFrame(testDs,testClusterer)
+
+    val trainPois = trainPoiSet.toArray
+    val testPois = testPoiSet.toArray
 
     val distances = getDistances(trainPois, testPois)
     var matches = getMatches(distances,trainDs.keys.intersect(testDs.keys).toSet)
@@ -57,13 +75,31 @@ class PoisReidentOp @Inject()(env: SparkleEnv) extends Operator[Reidentification
     print("POI-Attack user re-identified : ")
     println(matches.filter{ pair => pair._1==pair._2}.keySet)
     println(s"POI-Attack rate : $successRate")
+
+    val path = ctx.workDir.toAbsolutePath.toString+"iteration"
+    new File(path).mkdir()
+    write[PoiSet](trainPoiSet, ctx,"trainPOI")
+    write[PoiSet](testPoiSet, ctx,"testPOI")
+
     ReidentificationOut(matches, successRate)
 
   }
 
   private def getPois(data: DataFrame[Trace], clusterer: DTClusterer) = {
     val allPois = data.flatMap(clusterer.cluster(_).map(c => Poi(c.events))).toArray
-    allPois.groupBy(_.user).map { case (user, pois) => PoiSet(user, pois) }.toSeq
+    allPois.groupBy(_.user).map { case (user, pois) =>  PoiSet(user, pois) }.toSeq
+
+  }
+
+  private def getPOisDataFrame(data: DataFrame[Trace], clusterer: DTClusterer) =  data.flatMap(clusterer.cluster(_).map(c => Poi(c.events)))
+
+  private def getPOIsFromDataFrame(allPois : DataFrame[Poi]) = {
+    allPois.toArray.groupBy(_.user).map { case (user, pois) => PoiSet(user, pois) }.toSeq
+
+  }
+
+  private def getPOISetDataFrame(data: DataFrame[Trace], clusterer: DTClusterer)= {
+    data.map(t => PoiSet(t.user,clusterer.cluster(t).map(c => Poi(c.events))))
   }
 
   private def getDistances(trainPois: Seq[PoiSet], testPois: Seq[PoiSet]) = {

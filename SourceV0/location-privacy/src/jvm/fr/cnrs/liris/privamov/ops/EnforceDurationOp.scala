@@ -42,7 +42,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
   category = "prepare",
   help = "Enforce a given duration on each trace.",
   description = "Longer traces will be truncated, shorter traces will be discarded.")
-class EnforceDurationOp @Inject()(env: SparkleEnv) extends Operator[EnforceDurationIn, EnforceDurationOut] with SparkleOperator {
+class EnforceDurationOp  extends Operator[EnforceDurationIn, EnforceDurationOut] with SparkleOperator {
 
   override def execute(in: EnforceDurationIn, ctx: OpContext): EnforceDurationOut = {
     val data = read(in.data, env)

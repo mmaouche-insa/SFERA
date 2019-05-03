@@ -44,7 +44,7 @@ import org.joda.time.Instant
 @Op(
   category = "metric",
   help = "Compute temporal distortion difference between two datasets of traces")
-class TemporalDistortionOp @Inject()(env: SparkleEnv) extends Operator[TemporalDistortionIn, TemporalDistortionOut] with SparkleOperator {
+class TemporalDistortionOp  extends Operator[TemporalDistortionIn, TemporalDistortionOut] with SparkleOperator {
 
   override def execute(in: TemporalDistortionIn, ctx: OpContext): TemporalDistortionOut = {
     val train = read(in.train, env)

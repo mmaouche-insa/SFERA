@@ -42,7 +42,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
 @Op(
   category = "metric",
   help = "Compute transmission delay between two datasets of traces")
-class TransmissionDelayOp @Inject()(env: SparkleEnv) extends Operator[TransmissionDelayIn, TransmissionDelayOut] with SparkleOperator {
+class TransmissionDelayOp extends Operator[TransmissionDelayIn, TransmissionDelayOut] with SparkleOperator {
 
   override def execute(in: TransmissionDelayIn, ctx: OpContext): TransmissionDelayOut = {
     val train = read(in.train, env)

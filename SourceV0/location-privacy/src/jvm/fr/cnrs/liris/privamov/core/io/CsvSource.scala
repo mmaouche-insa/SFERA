@@ -18,24 +18,21 @@
 
 package fr.cnrs.liris.privamov.core.io
 
-import java.io.File
 import java.nio.file.{Files, Paths}
 
-import com.github.nscala_time.time.Imports._
-import com.google.common.base.{Charsets, MoreObjects}
-import fr.cnrs.liris.common.geo.LatLng
-import fr.cnrs.liris.common.util.FileUtils
-import fr.cnrs.liris.privamov.core.model.{Event, Trace}
-import org.joda.time.Instant
+import com.google.common.base.MoreObjects
+
+import scala.reflect._
 
 /**
- * Mobility traces source reading data from our custom CSV format, with one file per trace.
- *
- * @param uri Path to the directory from where to read.
- */
-case class CsvSource(uri: String) extends DataSource[Trace] {
-  private[this] val path = Paths.get(FileUtils.replaceHome(uri))
-  private[this] val decoder = new TextLineDecoder(new CsvDecoder)
+  * Data source reading data from our CSV format. There is one CSV file per source key.
+  *
+  * @param uri     Path to the directory from where to read.
+  * @param decoder Decoder to read elements from each CSV file.
+  * @tparam T Type of elements being read.
+  */
+class CsvSource[T: ClassTag](uri: String, decoder: Decoder[T]) extends DataSource[T] {
+  private[this] val path = Paths.get(uri)
   require(path.toFile.isDirectory, s"$uri is not a directory")
   require(path.toFile.canRead, s"$uri is unreadable")
 
@@ -48,18 +45,16 @@ case class CsvSource(uri: String) extends DataSource[Trace] {
       .sortWith(sort)
   }
 
-  override def read(id: String): Option[Trace] = Some(read(id, path.resolve(s"$id.csv").toFile))
+  override def read(id: String): Iterable[T] = {
+    val bytes = Files.readAllBytes(path.resolve(s"$id.csv"))
+    decoder.decode(id, bytes)
+  }
 
   override def toString: String =
     MoreObjects.toStringHelper(this)
+      .addValue(classTag[T].runtimeClass.getName)
       .add("uri", uri)
       .toString
-
-  private def read(id: String, file: File): Trace = {
-    val bytes = Files.readAllBytes(file.toPath)
-    val events = decoder.decode(id, bytes).getOrElse(Seq.empty).sortBy(_.time)
-    Trace(id, events)
-  }
 
   private def sort(key1: String, key2: String): Boolean = {
     val parts1 = key1.split("-").tail.map(_.toInt)
@@ -77,26 +72,5 @@ case class CsvSource(uri: String) extends DataSource[Trace] {
 
   private def sort(parts1: Seq[Int], parts2: Seq[Int]): Boolean = {
     parts1.zip(parts2).find { case (a, b) => a != b }.exists { case (a, b) => a < b }
-  }
-}
-
-/**
- * Decoder for our custom CSV format handling events.
- */
-class CsvDecoder extends Decoder[Event] {
-  override def decode(key: String, bytes: Array[Byte]): Option[Event] = {
-    val line = new String(bytes, Charsets.UTF_8).trim
-    val parts = line.split(",")
-    if (parts.length < 3 || parts.length > 4) {
-      None
-    } else {
-      val (user, lat, lng, time) = if (parts.length == 4) {
-        (parts(0), parts(1).toDouble, parts(2).toDouble, parts(3).toLong)
-      } else {
-        (key, parts(0).toDouble, parts(1).toDouble, parts(2).toLong)
-      }
-      val point = LatLng.degrees(lat, lng).toPoint
-      Some(Event(user, point, new Instant(time)))
-    }
   }
 }

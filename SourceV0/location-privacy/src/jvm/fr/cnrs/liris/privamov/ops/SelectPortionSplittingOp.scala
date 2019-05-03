@@ -26,8 +26,9 @@ import fr.cnrs.liris.privamov.core.model.Trace
 import fr.cnrs.liris.privamov.core.sparkle.{DataFrame, SparkleEnv}
 import com.google.common.geometry._
 import java.io._
-import org.joda.time.Duration
 
+import fr.cnrs.liris.common.util.TimeUtils
+import org.joda.time.Duration
 import org.joda.time.DateTimeConstants
 
 import scala.collection._
@@ -37,15 +38,17 @@ import scala.util.Random
 @Op(
   category = "prepare",
   help = "Splits the traces based on the starting and ending time")
-class SelectPortionSplittingOp @Inject()(env: SparkleEnv) extends Operator[SelectPortionSplittingIn, SelectPortionSplittingOut] with SparkleOperator {
+class SelectPortionSplittingOp  extends Operator[SelectPortionSplittingIn, SelectPortionSplittingOut] with SparkleOperator {
 
 
   override def execute(in: SelectPortionSplittingIn, ctx: OpContext): SelectPortionSplittingOut = {
    require(in.start < in.end && in.start >= 0 && in.end <= 1 )
     // read the data
-    val ds = read(in.data, env)
+
+    val ds = read[Trace](in.data)
     val output = ds.map(t => split(t,in.start,in.end))
-      SelectPortionSplittingOut(write(output, ctx.workDir))
+
+    SelectPortionSplittingOut(write[Trace](output, ctx))
   }
 
   def split(t : Trace, start : Double, end : Double) = {

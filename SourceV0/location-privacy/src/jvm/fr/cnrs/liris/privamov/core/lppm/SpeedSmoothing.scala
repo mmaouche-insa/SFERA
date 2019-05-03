@@ -34,6 +34,8 @@ import scala.collection.mutable
  * @param epsilon Distance between two consecutive points.
  */
 class SpeedSmoothing(epsilon: Distance) {
+
+
   def transform(trace: Trace): Trace =
     if (trace.isEmpty) {
       trace.empty
@@ -49,6 +51,21 @@ class SpeedSmoothing(epsilon: Distance) {
       // duration between two consecutive events.
       trace.replace(allocate(sampled))
     }
+
+
+  def transform(events : Seq[Event]): Seq[Event] =
+    if (events.isEmpty || (epsilon == Distance.Zero)) {
+      events
+    } else {
+      // We sample events to keep those at a distance of exactly `epsilon` from the previous one.
+      // Sampled locations will be interpolated linearly between the two nearest reported
+      // locations. This way there will be the same distance between two consecutive events.
+      val sampled = sample(events, epsilon)
+      // The time to "spend" will be uniformely allocated. This way there will be the same
+      // duration between two consecutive events.
+      allocate(sampled)
+    }
+
 
   private def sample(events: Seq[Event], epsilon: Distance) = {
     var sampled = mutable.ListBuffer.empty[Event]

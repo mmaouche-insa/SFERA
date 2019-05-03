@@ -1,6 +1,6 @@
 /*
- * Accio is a program whose purpose is to study location privacy.
- * Copyright (C) 2016 Vincent Primault <vincent.primault@liris.cnrs.fr>
+ * Copyright LIRIS-CNRS (2017)
+ * Contributors: Mohamed Maouche  <mohamed.maouchet@liris.cnrs.fr>MatMatching.scala
  *
  * Accio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,13 +36,15 @@ import scala.util.Random
 @Op(
   category = "Attack",
   help = "Re-identification attack based on the matrix matching")
- class MatMatchingOp @Inject()(env: SparkleEnv) extends Operator[MatMatchingIn, MatMatchingOut] with SparkleOperator {
+ class MatMatchingOp  extends Operator[MatMatchingIn, MatMatchingOut] with SparkleOperator {
 
 
   override def execute(in: MatMatchingIn, ctx: OpContext): MatMatchingOut = {
     // read the data
     val dstrain = read(in.train, env)
     val dstest = read(in.test, env)
+
+
     // rectangular point
     val (p1, p2) = initializePoint(in)
     val (rdstrain, ratio) = restrictArea(dstrain, p1, p2)
@@ -99,7 +101,9 @@ import scala.util.Random
     (rate, matches, meantrain)
   }
 
- def formSingleMatrices(ds: DataFrame[Trace], dimensions: (Int, Int, Point), cellSize: Distance): immutable.Map[String, MatrixLight[Int]] = {
+
+
+  def formSingleMatrices(ds: DataFrame[Trace], dimensions: (Int, Int, Point), cellSize: Distance): immutable.Map[String, MatrixLight[Int]] = {
 
     var outputMap: scala.collection.immutable.Map[String, MatrixLight[Int]] = scala.collection.immutable.Map[String, MatrixLight[Int]]().empty
     ds.foreach{ t =>
@@ -127,9 +131,8 @@ import scala.util.Random
         }
     }
 
-   outputMap
+    outputMap
   }
-
   def formDayHoursMatrices(ds: DataFrame[Trace], dimensions: (Int, Int, Point), cellSize: Distance): scala.collection.immutable.Map[String, Array[MatrixLight[Int]]] = {
 
     var outputMap: scala.collection.immutable.Map[String, Array[MatrixLight[Int]]] = scala.collection.immutable.Map[String, Array[MatrixLight[Int]]]().empty
@@ -328,7 +331,7 @@ import scala.util.Random
   }
 
   def reIdent(trainMats: immutable.Map[String, MatrixLight[Int]], testMats: immutable.Map[String, MatrixLight[Int]], n: Int): (Double, immutable.Map[String, String]) = {
-   // printMatrixCsvfile(testMats)
+    // printMatrixCsvfile(testMats)
 
 
     var matches: scala.collection.immutable.Map[String, String] = scala.collection.immutable.Map[String, String]()
@@ -347,7 +350,7 @@ import scala.util.Random
         }
         val seq = order.toSeq.sortBy(_._2)
 
-         //  println(s" - element $k  trainsMat length =  $l")
+        //  println(s" - element $k  trainsMat length =  $l")
 
         synchronized(matches += (k -> seq.head._1))
         if (k == seq.head._1) nbMatches += 1
@@ -596,6 +599,9 @@ import scala.util.Random
     (output, ratio)
   }
 
+  def extractUser(id : String) : String = {
+    id.split("-")(0)
+  }
 }
 
 case class MatMatchingIn(

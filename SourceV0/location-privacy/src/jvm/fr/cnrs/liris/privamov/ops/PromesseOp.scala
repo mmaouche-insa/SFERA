@@ -41,10 +41,13 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
 @Op(
   category = "lppm",
   help = "Enforce speed smoothing guarantees on traces.")
-class PromesseOp @Inject()(env: SparkleEnv) extends Operator[PromesseIn, PromesseOut] with SparkleOperator {
+class PromesseOp  extends Operator[PromesseIn, PromesseOut] with SparkleOperator {
 
   override def execute(in: PromesseIn, ctx: OpContext): PromesseOut = {
     val output = read(in.data, env).map(new SpeedSmoothing(in.epsilon).transform(_))
+
+
+
     PromesseOut(write(output, ctx.workDir))
   }
 }

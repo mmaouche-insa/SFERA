@@ -54,22 +54,39 @@ object OpsModule extends ScalaModule {
     ops.addBinding.toInstance(classOf[TemporalSamplingOp])
     ops.addBinding.toInstance(classOf[UniformSamplingOp])
     ops.addBinding.toInstance(classOf[Wait4MeOp])
-
-
+    ops.addBinding.toInstance(classOf[RestrictAreaS2Op])
+    ops.addBinding.toInstance(classOf[RestrictAreaOp])
+    ops.addBinding.toInstance(classOf[MatriceGenOp])
+    ops.addBinding.toInstance(classOf[MatMatchOp])
     ops.addBinding.toInstance(classOf[MatMatchingOp])
     ops.addBinding.toInstance(classOf[MMCReIdentOp])
-
+    ops.addBinding.toInstance(classOf[CreateDataSetOp])
 
     ops.addBinding.toInstance(classOf[EnforceDayDurationOp])
-
+    ops.addBinding.toInstance(classOf[MatMatchHeavyOp])
     ops.addBinding.toInstance(classOf[TemporalSplittingOp])
-
-
+    ops.addBinding.toInstance(classOf[HeatMapGeneratorOp])
     ops.addBinding.toInstance(classOf[AreaCoverageMatrixOp])
-
-
+   // ops.addBinding.toInstance(classOf[HeatMapConfusionOp])
+    ops.addBinding.toInstance(classOf[HeatMapDistortionOp])
     ops.addBinding.toInstance(classOf[SelectPortionSplittingOp])
     ops.addBinding.toInstance(classOf[SelectRandomSamplingOp])
+    ops.addBinding.toInstance(classOf[MultipleSplittingOp])
+    ops.addBinding.toInstance(classOf[HybridLPPMPortionOp])
+    ops.addBinding.toInstance(classOf[PoisExtractionOp])
+    ops.addBinding.toInstance(classOf[HMConfusionOp])
+    ops.addBinding.toInstance(classOf[HMConfusionPortionOp])
+    ops.addBinding.toInstance(classOf[HybridLPPMUtilityOp])
+    ops.addBinding.toInstance(classOf[CountPassThroughOp])
+    ops.addBinding.toInstance(classOf[MatMatchingKSetsOp])
+    ops.addBinding.toInstance(classOf[HeatMapGeneratorOp])
+    ops.addBinding.toInstance(classOf[PoisReidentKSetOp])
+    ops.addBinding.toInstance(classOf[MMCReIdentKSetOp])
+    ops.addBinding.toInstance(classOf[SpatioTemporalDistortionOp])
+    ops.addBinding.toInstance(classOf[PoiOpenStreetMapDistortionOp])
+    ops.addBinding.toInstance(classOf[TrainTestSplitSubTracesOp])
+
+
 
 
 

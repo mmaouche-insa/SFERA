@@ -17,7 +17,7 @@
  */
 
 package fr.cnrs.liris.privamov.core.model
-
+import fr.cnrs.liris.common.util._
 import com.github.nscala_time.time.Imports._
 import com.google.common.base.MoreObjects
 import fr.cnrs.liris.common.geo.{BoundingBox, Distance, Point}
@@ -33,7 +33,10 @@ import fr.cnrs.liris.common.geo.{BoundingBox, Distance, Point}
  * @param user   User identifier.
  * @param events Chronologically ordered events.
  */
-case class Trace private(id: String, user: String, events: Seq[Event]) {
+case class Trace private(id: String, user: String, events: Seq[Event]) extends Identified {
+
+
+
   /**
    * Check if this trace is empty, i.e., contains no event.
    */
@@ -188,7 +191,7 @@ object Trace {
    */
   def apply(id: String, events: Seq[Event]): Trace = {
     val user = getUser(id)
-    require(events.isEmpty || events.head.user == user, s"Inconsistent trace identifier and event user: $id and ${events.head.user}")
+    //require(events.isEmpty || events.head.user == user, s"Inconsistent trace identifier and event user: $id and ${events.head.user}")
     new Trace(id, user, events)
   }
 

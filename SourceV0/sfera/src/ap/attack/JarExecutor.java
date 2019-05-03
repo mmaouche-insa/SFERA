@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.io.IOUtils;
 
 /**
  *
@@ -32,7 +33,8 @@ public void executeJar(String jarFilePath, List<String> args) throws Exception {
         //final Process command = re.exec(cmdString, args.toArray(new String[0]));
         final Process command = pb.start();
         this.error = new BufferedReader(new InputStreamReader(command.getErrorStream()));
-        this.op = new BufferedReader(new InputStreamReader(command.getInputStream()));
+        this.op = new BufferedReader(new InputStreamReader(command.getInputStream()));       
+        IOUtils.copy(command.getInputStream(), System.out);
         // Wait for the application to Finish
         command.waitFor();
         this.exitVal = command.exitValue();

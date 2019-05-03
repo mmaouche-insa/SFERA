@@ -44,7 +44,7 @@ import scala.collection.immutable
 @Op(
   category = "metric",
   help = "Compute area coverage difference between two datasets of traces")
-class AreaCoverageMatrixOp @Inject()(env: SparkleEnv) extends Operator[AreaCoverageMatrixIn, AreaCoverageMatrixOut] with SparkleOperator {
+class AreaCoverageMatrixOp  extends Operator[AreaCoverageMatrixIn, AreaCoverageMatrixOut] with SparkleOperator {
 
   override def execute(in: AreaCoverageMatrixIn, ctx: OpContext): AreaCoverageMatrixOut = {
     val  dstrain = read(in.train, env)
@@ -109,8 +109,8 @@ class AreaCoverageMatrixOp @Inject()(env: SparkleEnv) extends Operator[AreaCover
 
     var outputMap: scala.collection.immutable.Map[String, MatrixLight[Int]] = scala.collection.immutable.Map[String, MatrixLight[Int]]().empty
     ds.foreach{ t =>
-      synchronized(outputMap += (t.user -> new MatrixLight[Int](dimensions._1, dimensions._2)))
-      println(t.user)
+      synchronized(outputMap += (t.id -> new MatrixLight[Int](dimensions._1, dimensions._2)))
+      println(t.id)
     }
     ds.foreach {
       t =>
@@ -119,17 +119,18 @@ class AreaCoverageMatrixOp @Inject()(env: SparkleEnv) extends Operator[AreaCover
           t.events.last.time
           val start_trace = t.events.head.time
           val user = t.user
+          val id = t.id
           val events = t.events
           events.foreach { e =>
             val p = e.point
             val j = math.floor((p.x - dimensions._3.x) / cellSize.meters).toInt
             val i = math.floor((p.y - dimensions._3.y) / cellSize.meters).toInt
-            val mat = outputMap(user)
+            val mat = outputMap(id)
             mat.inc(i, j)
-            outputMap += (user -> mat)
+            outputMap += (id -> mat)
           }
         }else{
-          outputMap  -= t.user
+          outputMap  -= t.id
         }
     }
     outputMap
@@ -137,11 +138,8 @@ class AreaCoverageMatrixOp @Inject()(env: SparkleEnv) extends Operator[AreaCover
   /*
   def statsAreaCoverage(trainMats: immutable.Map[String, MatrixLight[Int]], testMats: immutable.Map[String, MatrixLight[Int]], n: Int): (Double, immutable.Map[String, String]) = {
     // printMatrixCsvfile(testMats)
-
-
     var stats: immutable.Map[String, String] = immutable.Map[String, String]()
     var nbMatches: Int = 0
-
     testMats.par.foreach {
       case (k: String, mat_k: MatrixLight[Int]) =>
         var order = immutable.Map[String, Double]()
@@ -154,7 +152,6 @@ class AreaCoverageMatrixOp @Inject()(env: SparkleEnv) extends Operator[AreaCover
             areaCovInfo += (u -> (ac._2._1.toString +"=" +ac._2._2.toString + "=" + ac._2._3.toString  ))
         }
          val seq = order.toSeq.sortBy(_._2)
-
         synchronized{
            seq.foreach{
              case (u,dist) =>
@@ -163,10 +160,8 @@ class AreaCoverageMatrixOp @Inject()(env: SparkleEnv) extends Operator[AreaCover
                stats += ( users -> info )
            }
         }
-
         if (k == seq.head._1) nbMatches += 1
     }
-
     val rate: Double = nbMatches.toDouble / testMats.keys.size.toDouble
     (rate, stats)
   }
@@ -177,26 +172,26 @@ class AreaCoverageMatrixOp @Inject()(env: SparkleEnv) extends Operator[AreaCover
 
 
 case class AreaCoverageMatrixIn(
-                           @Arg(help = "Train dataset") train: Dataset,
-                           @Arg(help = "Test dataset") test: Dataset,
-                           @Arg(help = "Cell Size in meters") cellSize: Distance,
-                           //@Arg(help = "Type of distance metrics between matrices (default : Topsoe") distanceType: Int = -51
+                                 @Arg(help = "Train dataset") train: Dataset,
+                                 @Arg(help = "Test dataset") test: Dataset,
+                                 @Arg(help = "Cell Size in meters") cellSize: Distance,
+                                 //@Arg(help = "Type of distance metrics between matrices (default : Topsoe") distanceType: Int = -51
 
-                           @Arg(help = "Lower point latitude")
-                           lat1: Double =  -61.0 ,
-                           @Arg(help = "Lower point longitude")
-                           lng1: Double = -131 ,
-                           @Arg(help = "Higher point latitude (override diag & angle)")
-                           lat2: Double = 80,
-                           @Arg(help = "Higher point latitude (override diag & angle)")
-                           lng2: Double = 171
+                                 @Arg(help = "Lower point latitude")
+                                 lat1: Double =  -61.0 ,
+                                 @Arg(help = "Lower point longitude")
+                                 lng1: Double = -131 ,
+                                 @Arg(help = "Higher point latitude (override diag & angle)")
+                                 lat2: Double = 80,
+                                 @Arg(help = "Higher point latitude (override diag & angle)")
+                                 lng2: Double = 171
                                )
 
 case class AreaCoverageMatrixOut(
-                            @Arg(help = "Area coverage statistics") writtenStats: Map[String, String],
-                            @Arg(help = "Area coverage statistics")  fscores : Map[String, Double],
-                            @Arg(help = "Area coverage statistics")  avgFscore : Double,
-                            @Arg(help = "Area coverage statistics")  avgrecall : Double,
-                            @Arg(help = "Area coverage statistics")  avgprecision : Double
+                                  @Arg(help = "Area coverage statistics") writtenStats: Map[String, String],
+                                  @Arg(help = "Area coverage statistics")  fscores : Map[String, Double],
+                                  @Arg(help = "Area coverage statistics")  avgFscore : Double,
+                                  @Arg(help = "Area coverage statistics")  avgrecall : Double,
+                                  @Arg(help = "Area coverage statistics")  avgprecision : Double
 
                                 )

@@ -40,7 +40,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
 @Op(
   category = "prepare",
   help = "Split traces sequentially, according to chronological order.")
-class SequentialSplittingOp @Inject()(env: SparkleEnv) extends Operator[SequentialSplittingIn, SequentialSplittingOut] with SparkleOperator {
+class SequentialSplittingOp  extends Operator[SequentialSplittingIn, SequentialSplittingOut] with SparkleOperator {
 
   override def execute(in: SequentialSplittingIn, ctx: OpContext): SequentialSplittingOut = {
     val output = read(in.data, env).map(transform(_, in.percentBegin, in.percentEnd, in.complement))

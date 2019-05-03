@@ -45,7 +45,7 @@ import scala.util.Random
   category = "prepare",
   help =" Select randomly events inside traces.",
   description = "Perform a portion of the traces, randomly taken")
-class SelectRandomSamplingOp @Inject()(env: SparkleEnv) extends Operator[SelectRandomSamplingIn, SelectRandomSamplingOut] with SparkleOperator {
+class SelectRandomSamplingOp extends Operator[SelectRandomSamplingIn, SelectRandomSamplingOut] with SparkleOperator {
 
   override def execute(in: SelectRandomSamplingIn, ctx: OpContext): SelectRandomSamplingOut = {
     val input = read(in.data, env)

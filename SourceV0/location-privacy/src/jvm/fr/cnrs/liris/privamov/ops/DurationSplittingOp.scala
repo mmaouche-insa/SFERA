@@ -41,7 +41,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
 @Op(
   category = "prepare",
   help = "Split traces, ensuring a maximum duration for each one.")
-class DurationSplittingOp @Inject()(env: SparkleEnv) extends Operator[DurationSplittingIn, DurationSplittingOut]
+class DurationSplittingOp  extends Operator[DurationSplittingIn, DurationSplittingOut]
                                                              with SlidingSplitting with SparkleOperator {
 
   override def execute(in: DurationSplittingIn, ctx: OpContext): DurationSplittingOut = {

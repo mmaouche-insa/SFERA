@@ -36,7 +36,7 @@ import breeze.stats.DescriptiveStats
 import com.google.common.base.MoreObjects
 import fr.cnrs.liris.common.geo.Point
 import fr.cnrs.liris.common.geo.Distance
-
+import fr.cnrs.liris.common.util.Identified
 /**
  * A set of POIs belonging to a single user. This is essentially a wrapper around a basic set, providing some
  * useful methods to manipulate POIs.
@@ -44,7 +44,10 @@ import fr.cnrs.liris.common.geo.Distance
  * @param user User identifier.
  * @param pois List of unique POIs.
  */
-case class PoiSet(user: String, pois: Seq[Poi]) {
+case class PoiSet(user: String, pois: Seq[Poi]) extends Identified  {
+
+  override def id: String = user
+
   /**
    * Check whether the set of POIs is not empty.
    *

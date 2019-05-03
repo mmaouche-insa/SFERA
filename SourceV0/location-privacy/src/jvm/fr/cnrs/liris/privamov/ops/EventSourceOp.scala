@@ -21,17 +21,19 @@ package fr.cnrs.liris.privamov.ops
 import com.google.inject.Inject
 import fr.cnrs.liris.accio.core.api._
 import fr.cnrs.liris.common.util.FileUtils
-import fr.cnrs.liris.privamov.core.io.{CabspottingSource, CsvSource, GeolifeSource}
+import fr.cnrs.liris.privamov.core.io.{CabspottingSource, CsvSource, GeolifeSource, TraceDecoder}
+import fr.cnrs.liris.privamov.core.model.Trace
 import fr.cnrs.liris.privamov.core.sparkle._
 
 @Op(
   category = "source",
   help = "Read a dataset of traces.")
-class EventSourceOp @Inject()(env: SparkleEnv) extends Operator[EventSourceIn, EventSourceOut] with SparkleOperator {
+class EventSourceOp  extends Operator[EventSourceIn, EventSourceOut] with SparkleOperator {
 
   override def execute(in: EventSourceIn, ctx: OpContext): EventSourceOut = {
+
     val source = in.kind match {
-      case "csv" => CsvSource(FileUtils.replaceHome(in.url))
+      case "csv" => new CsvSource[Trace](FileUtils.replaceHome(in.url),new TraceDecoder)
       case "cabspotting" => CabspottingSource(FileUtils.replaceHome(in.url))
       case "geolife" => GeolifeSource(FileUtils.replaceHome(in.url))
       case _ => throw new IllegalArgumentException(s"Unknown kind: ${in.kind}")

@@ -1,6 +1,6 @@
 /*
- * Copyright LIRIS-CNRS (2016)
- * Contributors: Vincent Primault <vincent.primault@liris.cnrs.fr>
+ * Copyright LIRIS-CNRS (2017)
+ * Contributors: Mohamed Maouche  <mohamed.maouchet@liris.cnrs.fr>
  *
  * This software is a computer program whose purpose is to study location privacy.
  *
@@ -41,7 +41,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
 @Op(
   category = "metric",
   help = "Compute data completeness difference between two datasets of traces.")
-class DataCompletenessOp @Inject()(env: SparkleEnv) extends Operator[DataCompletenessIn, DataCompletenessOut] with SparkleOperator {
+class DataCompletenessOp extends Operator[DataCompletenessIn, DataCompletenessOut] with SparkleOperator {
 
   override def execute(in: DataCompletenessIn, ctx: OpContext): DataCompletenessOut = {
     val train = read(in.train, env)

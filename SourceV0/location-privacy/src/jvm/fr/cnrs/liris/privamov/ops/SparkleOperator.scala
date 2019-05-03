@@ -18,22 +18,113 @@
 
 package fr.cnrs.liris.privamov.ops
 
-import java.nio.file.Path
 
-import fr.cnrs.liris.accio.core.api.Dataset
-import fr.cnrs.liris.privamov.core.io.{CsvSink, CsvSource}
+import java.nio.file.{Files, Path}
+
+import fr.cnrs.liris.accio.core.api.{Dataset, OpContext, Operator}
+import fr.cnrs.liris.common.util.Identified
+import fr.cnrs.liris.privamov.core.io._
 import fr.cnrs.liris.privamov.core.model.Trace
 import fr.cnrs.liris.privamov.core.sparkle.{DataFrame, SparkleEnv}
 
-private[ops] trait SparkleOperator {
-  protected def read(dataset: Dataset, env: SparkleEnv) = {
-    require(dataset.format == "csv", s"Only CSV datasets are supported, got: ${dataset.format}")
-    env.read(CsvSource(dataset.uri))
+import scala.reflect.{ClassTag, classTag}
+
+trait SparkleOperator {
+  this: Operator[_, _] =>
+
+  // Create a Sparkle environment using the numProcs' flag to limit parallelism.
+  // It is a poor-man's way to isolate execution in terms of CPU usage.
+   val env = new SparkleEnv(math.max(1,sys.runtime.availableProcessors() - 1) )
+
+  private[this] val encoders = Set(new StringCodec, new CsvEventCodec, new TraceCodec, new CsvPoiCodec, new CsvPoiSetCodec)
+  private[this] val decoders = Set(new StringCodec, new CsvEventCodec, new TraceCodec, new CsvPoiCodec, new CsvPoiSetCodec)
+
+  /**
+    * Read a CSV dataset as a [[DataFrame]].
+    *
+    * @param dataset Dataset to read.
+    * @tparam T Dataframe type.
+    * @throws RuntimeException If there is no decoder to read as given type.
+    */
+  protected final def read[T: ClassTag](dataset: Dataset): DataFrame[T] = {
+    val clazz = classTag[T].runtimeClass
+    decoders.find(decoder => clazz.isAssignableFrom(decoder.elementClassTag.runtimeClass)) match {
+      case None => throw new RuntimeException(s"No decoder available for ${clazz.getName}")
+      case Some(decoder) => env.read(new CsvSource(dataset.uri, decoder.asInstanceOf[Decoder[T]]))
+    }
+  }
+    /**
+      * Read a CSV dataset as a [[DataFrame]].
+      *
+      * @param dataset Dataset to read.
+      * @throws RuntimeException If there is no decoder to read as given type.
+      */
+    protected  def read(dataset: Dataset, env : SparkleEnv) = {
+        require(dataset.format == "csv", s"Only CSV datasets are supported, got: ${dataset.format}")
+     val src = new CsvSource(dataset.uri, new TraceCodec)
+        env.read(src)
   }
 
-  protected def write(frame: DataFrame[Trace], workDir: Path, port: String = "data") = {
-    val uri = workDir.resolve(port).toAbsolutePath.toString
-    frame.write(CsvSink(uri))
-    Dataset(uri, format = "csv")
+  /**
+    * Write a [[DataFrame]] as a CSV dataset, for a "data" output port.
+    *
+    * @param frame Dataframe to write.
+    * @param ctx   Operator execution context.
+    * @tparam T Dataframe type.
+    * @throws RuntimeException If there is no encoder to write dataframe.
+    */
+  protected final def write[T <: Identified : ClassTag](frame: DataFrame[T], ctx: OpContext): Dataset =
+    write[T](frame, ctx, "data")
+
+  /**
+    * Write a [[DataFrame]] as a CSV dataset, for a "data" output port.
+    *
+    * @param frame Dataframe to write.
+    * @param workDir   Path of working.
+    * @throws RuntimeException If there is no encoder to write dataframe.
+    */
+  protected final def write(frame: DataFrame[Trace], workDir : Path): Dataset =
+    write(frame, workDir, "data")
+
+
+
+  /**
+    * Write a [[DataFrame]] as a CSV dataset.
+    *
+    * @param frame Dataframe to write.
+    * @param ctx   Operator execution context.
+    * @param port  Output port name.
+    * @tparam T Dataframe type.
+    * @throws RuntimeException If there is no encoder to write dataframe.
+    */
+  protected final def write[T <: Identified : ClassTag](frame: DataFrame[T], ctx: OpContext, port: String): Dataset = {
+    val clazz = classTag[T].runtimeClass
+    println(s"val clazz = classTag[T].runtimeClass $clazz")
+    encoders.find(encoder => clazz.isAssignableFrom(encoder.elementClassTag.runtimeClass)) match {
+      case None => throw new RuntimeException(s"No encoder available for ${clazz.getName}")
+      case Some(encoder) =>
+        val path = ctx.workDir.resolve(port).toAbsolutePath
+        println(s"encoders $encoder")
+        Files.createDirectories(path)
+        frame.write(new CsvSink(path.toString, encoder.asInstanceOf[Encoder[T]]))
+        Dataset(path.toString,"csv")
+    }
   }
+
+  /**
+    * Write a [[DataFrame]] as a CSV dataset.
+    *
+    * @param frame Dataframe to write.
+    * @param workDir   Path of working.
+    * @param port  Output port name.
+    * @throws RuntimeException If there is no encoder to write dataframe.
+    */
+  protected final def write(frame: DataFrame[Trace],workDir : Path , port: String): Dataset = {
+        val path = workDir.resolve(port).toAbsolutePath
+        Files.createDirectories(path)
+        frame.write(new CsvSink(path.toString,new TraceCodec))
+        Dataset(path.toString,"csv")
+  }
+
+
 }

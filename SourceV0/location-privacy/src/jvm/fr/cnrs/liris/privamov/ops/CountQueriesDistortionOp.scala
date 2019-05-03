@@ -33,15 +33,18 @@ import org.joda.time.{Duration, Interval}
 @Op(
   category = "metric",
   help = "Evaluate count query distortion between to datasets.")
-class CountQueriesDistortionOp @Inject()(env: SparkleEnv) extends Operator[CountQueriesDistortionIn, CountQueriesDistortionOut] with SparkleOperator {
+class CountQueriesDistortionOp  extends Operator[CountQueriesDistortionIn, CountQueriesDistortionOut] with SparkleOperator {
 
   override def execute(in: CountQueriesDistortionIn, ctx: OpContext): CountQueriesDistortionOut = {
     val trainDs = read(in.train, env)
     val testDs = read(in.test, env)
     val generator = new CountQueryGenerator(trainDs, ctx.seed, in.minSize, in.maxSize, in.minDuration, in.maxDuration)
     val queries = generator.generate(in.n)
+    println(s"Queries = ${queries.queries}")
     val refCounts = queries.count(trainDs)
     val resCounts = queries.count(testDs)
+    println(s" refcounts = $refCounts")
+    println(s" rescounts = $resCounts")
     val values = refCounts.indices.map(i => compute(refCounts(i), resCounts(i)))
     CountQueriesDistortionOut(values)
   }
@@ -50,6 +53,9 @@ class CountQueriesDistortionOp @Inject()(env: SparkleEnv) extends Operator[Count
     if (0 == refCount) resCount
     else Math.abs(refCount - resCount).toDouble / refCount
   }
+
+  override def isUnstable(in: CountQueriesDistortionIn): Boolean = true
+
 }
 
 case class CountQueriesDistortionIn(
@@ -89,6 +95,9 @@ private case class CountQuery(box: BoundingBox, span: Interval) {
    */
   def contains(trace: Trace): Boolean =
   trace.events.exists(r => box.contains(r.point) && span.contains(r.time))
+
+  override def toString: String = s"($box , $span) "
+
 }
 
 /**
@@ -107,13 +116,16 @@ private case class CountQuerySeq(queries: Seq[CountQuery]) {
     val counters = queries.indices.map(idx => new AtomicLong)
     dataset.foreach(trace => {
       for (i <- counters.indices) {
+        println(s"Query $i  = ${queries(i)}")
         if (queries(i).contains(trace)) {
           counters(i).incrementAndGet()
+          println(s" INCREMENT for $i :  counters($i) = ${counters(i).get()}")
         }
       }
     })
     counters.map(c => c.get())
   }
+
 }
 
 /**

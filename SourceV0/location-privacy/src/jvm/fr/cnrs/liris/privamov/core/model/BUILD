@@ -3,6 +3,7 @@ scala_library(
   dependencies=[
     'src/jvm/fr/cnrs/liris/common/geo',
     '3rdparty/jvm/com/google/guava',
+    'src/jvm/fr/cnrs/liris/common/util',
     '3rdparty/jvm:scala-time',
     '3rdparty/jvm/org/scalanlp:breeze',
   ],

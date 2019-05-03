@@ -40,7 +40,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
 @Op(
   help = "Compute basic statistics about traces.",
   category = "metric")
-class BasicAnalyzerOp @Inject()(env: SparkleEnv) extends Operator[BasicAnalyzerIn, BasicAnalyzerOut] with SparkleOperator {
+class BasicAnalyzerOp  extends Operator[BasicAnalyzerIn, BasicAnalyzerOut] with SparkleOperator {
 
   override def execute(in: BasicAnalyzerIn, ctx: OpContext): BasicAnalyzerOut = {
     val data = read(in.data, env)

@@ -44,10 +44,12 @@ import scala.util.Random
   help = "Enforce geo-indistinguishability guarantees on traces.",
   description = "Generate locations satisfying geo-indistinguishability properties. The method used here is the one " +
     "presented by the authors of the paper and consists in adding noise following a double-exponential distribution.")
-class GeoIndistinguishabilityOp @Inject()(env: SparkleEnv) extends Operator[GeoIndistinguishabilityIn, GeoIndistinguishabilityOut] with SparkleOperator {
+class GeoIndistinguishabilityOp  extends Operator[GeoIndistinguishabilityIn, GeoIndistinguishabilityOut] with SparkleOperator {
 
   override def execute(in: GeoIndistinguishabilityIn, ctx: OpContext): GeoIndistinguishabilityOut = {
     val input = read(in.data, env)
+
+    input.map( t =>  t.events)
     val rnd = new Random(ctx.seed)
     val seeds = input.keys.map(key => key -> rnd.nextLong()).toMap
     val output = input.map(trace => new Laplace(in.epsilon, seeds(trace.id)).transform(trace))

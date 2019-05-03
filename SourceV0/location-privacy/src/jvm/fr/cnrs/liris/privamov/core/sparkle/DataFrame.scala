@@ -21,6 +21,7 @@ package fr.cnrs.liris.privamov.core.sparkle
 import com.google.common.base.MoreObjects
 import com.typesafe.scalalogging.LazyLogging
 import fr.cnrs.liris.common.random._
+import fr.cnrs.liris.common.util.Identified
 import fr.cnrs.liris.privamov.core.io.DataSink
 
 import scala.collection.mutable
@@ -158,7 +159,32 @@ abstract class DataFrame[T: ClassTag](val env: SparkleEnv) extends LazyLogging {
 
   final def foreach(fn: T => Unit): Unit = env.submit[T, Unit](this, keys, (_, it) => it.foreach(fn))
 
-  final def write(sink: DataSink[T]): Unit = env.submit[T, Unit](this, keys, (key, it) => sink.write(it))
+  //final def write(sink: DataSink[T]): Unit = env.submit[T, Unit](this, keys, (key, it) => sink.write(it))
+
+  final def write(sink: DataSink[T]): Unit = {
+    val identifiable = classOf[Identified].isAssignableFrom(elementClassTag.runtimeClass)
+    println(s" identifiable $identifiable")
+    println(s"keys = $keys")
+    env.submit[T, Unit](this, keys, (key, it) => {
+      println("IS HE IDENTIFIABLE ?")
+      if (identifiable) {
+        //TODO: Get a rid of that once for all!
+        println("HE IS IDENTIFIABLE")
+        //println(s"groupby  ${it.toSeq.groupBy(_.asInstanceOf[Identified].id)}")
+       // println(s"foreach sends ${it.toSeq.groupBy(_.asInstanceOf[Identified].id).map{ case (actualKey, elements) => s"sink.write(actualKey=$actualKey, elements=$elements)"}} ")
+        it.toSeq
+          .groupBy(_.asInstanceOf[Identified].id)
+          .foreach { case (actualKey, elements) => sink.write(actualKey, elements) }
+      } else {
+        //println(s"HE IS NOT IDENTIFIABLE \n    sink.write(key=$key, it.toSeq = ${it.toSeq})")
+        sink.write(key, it.toSeq)
+      }
+      println(s"QUITING ENV SUBMIT of ${key}")
+    })
+  }
+
+
+
 }
 
 private[sparkle] class RestrictDataFrame[T: ClassTag](inner: DataFrame[T], override val keys: Seq[String])
@@ -260,3 +286,4 @@ private[sparkle] class ZipDataFrame[T: ClassTag, U: ClassTag](first: DataFrame[T
       .addValue(other)
       .toString
 }
+

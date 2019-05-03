@@ -42,6 +42,7 @@ class PoisClusterer(minDuration: Duration, maxDiameter: Distance, minPoints: Int
    */
   def cluster(events: Iterable[Event]): Set[Poi] = {
     val stays = dtClusterer.cluster(events.toSeq)
+
     val staysAsEvents = stays.zipWithIndex.map {
       case (stay, idx) => Event(idx.toString, stay.centroid, Instant.now)
     }
@@ -64,7 +65,7 @@ class PoisClusterer(minDuration: Duration, maxDiameter: Distance, minPoints: Int
     val pois = djClusterer.cluster(staysAsEvents)
     pois.map { poi =>
       new Cluster(poi.events.flatMap(event => stays(event.user.toInt).events))
-    }.toSeq
+    }
   }
 
 }

@@ -16,6 +16,9 @@
  * along with Accio.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+/*
+SEE TestLineCodec
 package fr.cnrs.liris.privamov.core.io
 
 import java.nio.charset.Charset
@@ -37,4 +40,4 @@ class TextLineDecoder[T](decoder: Decoder[T], headerLines: Int = 0, charset: Cha
     val elements = lines.flatMap(line => decoder.decode(key, line.getBytes(charset)))
     if (elements.nonEmpty) Some(elements) else None
   }
-}
+}*/

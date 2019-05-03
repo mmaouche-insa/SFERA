@@ -17,30 +17,30 @@
  */
 
 package fr.cnrs.liris.privamov.core.io
-
 import java.nio.file.{Files, Path, Paths}
 
-import com.google.common.base.MoreObjects
 import fr.cnrs.liris.common.geo.LatLng
 import fr.cnrs.liris.privamov.core.model.{Event, Trace}
 import org.joda.time.Instant
+import com.google.common.base.MoreObjects
 
+import scala.reflect._
 import scala.sys.process._
 
 /**
- * Support for the [[http://research.microsoft.com/apps/pubs/?id=152176 Geolife dataset]].
- * Each trace is stored inside its own directory splitted into multiple roughly one per day,
- * oldest events first.
- *
- * @param uri Path to the directory from where to read.
- */
+  * Support for the [[http://research.microsoft.com/apps/pubs/?id=152176 Geolife dataset]].
+  * Each trace is stored inside its own directory splitted into multiple roughly one per day,
+  * oldest events first.
+  *
+  * @param uri Path to the directory from where to read.
+  */
 case class GeolifeSource(uri: String) extends DataSource[Trace] {
   private[this] val path = Paths.get(uri)
-  private[this] val decoder = new TextLineDecoder(new GeolifeDecoder, headerLines = 6)
+  private[this] val decoder = new GeolifeDecoder
   require(path.toFile.isDirectory, s"$uri is not a directory")
   require(path.toFile.canRead, s"$uri is unreadable")
 
-  override lazy val keys =
+  override lazy val keys: Seq[String] =
     path.toFile
       .listFiles
       .filter(_.isDirectory)
@@ -49,9 +49,9 @@ case class GeolifeSource(uri: String) extends DataSource[Trace] {
       .toSeq
       .sorted
 
-  override def read(key: String): Option[Trace] = {
+  override def read(key: String): Seq[Trace] = {
     val events = path.resolve("Trajectory").toFile.listFiles.sortBy(_.getName).flatMap(file => read(key, file.toPath))
-    if (events.nonEmpty) Some(Trace(events)) else None
+    if (events.nonEmpty) Seq(Trace(events)) else Seq.empty
   }
 
   override def toString: String =
@@ -59,13 +59,9 @@ case class GeolifeSource(uri: String) extends DataSource[Trace] {
       .add("uri", uri)
       .toString
 
-  private def read(key: String, path: Path) =
-    decoder.decode(key, Files.readAllBytes(path.resolve(s"$key.plt"))).getOrElse(Seq.empty)
+  private def read(key: String, path: Path) = decoder.decode(key, Files.readAllBytes(path.resolve(s"$key.plt")))
 }
 
-/**
- * Factory for [[GeolifeSource]].
- */
 object GeolifeSource {
   def download(dest: Path): GeolifeSource = {
     val zipFile = dest.resolve("geolife.zip").toFile
@@ -83,8 +79,15 @@ object GeolifeSource {
 }
 
 class GeolifeDecoder extends Decoder[Event] {
-  override def decode(key: String, bytes: Array[Byte]): Option[Event] = {
-    val line = new String(bytes)
+  override def decode(key: String, bytes: Array[Byte]): Seq[Event] = {
+    new String(bytes)
+      .split("\n")
+      .toSeq
+      .drop(6)
+      .flatMap(line => decodeEvent(key, line.trim))
+  }
+
+  private def decodeEvent(key: String, line: String) = {
     val parts = line.trim.split(",")
     if (parts.length < 7) {
       None
@@ -96,8 +99,10 @@ class GeolifeDecoder extends Decoder[Event] {
         Some(Event(key, LatLng.degrees(lat, lng).toPoint, time))
       } catch {
         //Error in original data, skip event.
-        case e: IllegalArgumentException => None
+        case _: IllegalArgumentException => None
       }
     }
   }
+
+  override def elementClassTag: ClassTag[Event] = classTag[Event]
 }

@@ -19,20 +19,22 @@
 package fr.cnrs.liris.privamov.core.io
 
 /**
- * A sink is responsible for persisting elements. If they need to be read back later, you need to implement a
- * matching [[DataSource]].
- *
- * @tparam T Elements' type.
- */
+  * A sink is responsible for persisting elements. If they need to be read back later, you need to implement a
+  * matching [[DataSource]].
+  *
+  * @tparam T Type of elements being written.
+  */
 trait DataSink[T] {
   /**
-   * Persist some elements.
-   *
-   * @param elements Elements to write.
-   */
-  def write(elements: TraversableOnce[T]): Unit
+    * Persist some elements associated with the same key.
+    *
+    * @param key Key elements are associated to.
+    * @param elements Elements to write.
+    */
+  def write(key: String, elements: Seq[T]): Unit
 }
-
+/*
+GO TO CODEC.scala
 /**
  * An encoder converts a plain object into bytes.
  *
@@ -47,3 +49,4 @@ trait Encoder[T] {
    */
   def encode(obj: T): Array[Byte]
 }
+*/

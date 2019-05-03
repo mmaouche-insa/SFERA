@@ -43,7 +43,7 @@ import org.joda.time.Instant
   category = "prepare",
   help = "Collapse temporal gaps between days.",
   description = "Removes empty days by shifting data to fill those empty days.")
-class CollapseTemporalGapsOp @Inject()(env: SparkleEnv) extends Operator[CollapseTemporalGapsIn, CollapseTemporalGapsOut] with SparkleOperator {
+class CollapseTemporalGapsOp  extends Operator[CollapseTemporalGapsIn, CollapseTemporalGapsOut] with SparkleOperator {
 
   override def execute(in: CollapseTemporalGapsIn, ctx: OpContext): CollapseTemporalGapsOut = {
     val startAt = new Instant(in.startAt.millis).toDateTime.withTimeAtStartOfDay

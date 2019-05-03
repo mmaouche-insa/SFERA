@@ -38,6 +38,6 @@ class DirectorySource[T](url: String, extension: String, decoder: Decoder[T]) ex
       .filter(_.getName.endsWith(extension))
       .map(_.toPath.getFileName.toString.dropRight(extension.length))
 
-  override final def read(key: String): Option[T] =
+  override final def read(key: String): Seq[T] =
     decoder.decode(key, Files.readAllBytes(path.resolve(s"$key$extension")))
 }

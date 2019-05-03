@@ -25,30 +25,30 @@ import fr.cnrs.liris.common.geo.LatLng
 import fr.cnrs.liris.privamov.core.model.{Event, Trace}
 import org.joda.time.Instant
 
+import scala.reflect._
 import scala.sys.process._
 
 /**
- * Support for the [[http://crawdad.org/epfl/mobility/20090224/ Cabspotting dataset]].
- * Each trace is stored inside its own file, newest events first.
- *
- * @param uri Path to the directory from where to read.
- */
+  * Support for the [[http://crawdad.org/epfl/mobility/20090224/ Cabspotting dataset]].
+  * Each trace is stored inside its own file, newest events first.
+  *
+  * @param uri Path to the directory from where to read.
+  */
 case class CabspottingSource(uri: String) extends DataSource[Trace] {
   private[this] val path = Paths.get(uri)
-  private[this] val decoder = new TextLineDecoder(new CabspottingDecoder)
+  private[this] val decoder = new TraceDecoder
   require(path.toFile.isDirectory, s"$uri is not a directory")
   require(path.toFile.canRead, s"$uri is unreadable")
 
-  override lazy val keys = path.toFile
+  override lazy val keys: Seq[String] = path.toFile
     .listFiles
     .filter(f => f.getName.startsWith("new_") && f.getName.endsWith(".txt"))
     .map(_.toPath.getFileName.toString.drop(4).dropRight(4))
     .toSeq
     .sorted
 
-  override def read(key: String): Option[Trace] = {
-    val events = decoder.decode(key, Files.readAllBytes(path.resolve(s"new_$key.txt"))).getOrElse(Seq.empty)
-    if (events.nonEmpty) Some(Trace(events)) else None
+  override def read(key: String): Seq[Trace] = {
+    decoder.decode(key, Files.readAllBytes(path.resolve(s"new_$key.txt")))
   }
 
   override def toString: String =
@@ -57,18 +57,15 @@ case class CabspottingSource(uri: String) extends DataSource[Trace] {
       .toString
 }
 
-/**
- * Factory for [[CabspottingSource]].
- */
 object CabspottingSource {
   /**
-   * Download the Cabspotting dataset from Crawdad. Credentials are needed.
-   *
-   * @param dest            Destination path
-   * @param crawdadUsername Crawdad username
-   * @param crawdadPassword Crawdad password
-   * @return A Cabspotting source
-   */
+    * Download the Cabspotting dataset from Crawdad. Credentials are needed.
+    *
+    * @param dest            Destination path
+    * @param crawdadUsername Crawdad username
+    * @param crawdadPassword Crawdad password
+    * @return A Cabspotting source
+    */
   def download(dest: Path, crawdadUsername: String, crawdadPassword: String): CabspottingSource = {
     val tarFile = dest.resolve("cabspotting.tar.gz").toFile
     var exitCode = (s"curl -u $crawdadUsername:$crawdadPassword -q http://uk.crawdad.org//download/epfl/mobility/cabspottingdata.tar.gz" #> tarFile).!
@@ -85,11 +82,19 @@ object CabspottingSource {
 }
 
 /**
- * Decoder decoding a line of a Cabspotting file into an event.
- */
+  * Decoder decoding a line of a Cabspotting file into an event.
+  */
 class CabspottingDecoder extends Decoder[Event] {
-  override def decode(key: String, bytes: Array[Byte]): Option[Event] = {
-    val line = new String(bytes)
+  override def elementClassTag: ClassTag[Event] = classTag[Event]
+
+  override def decode(key: String, bytes: Array[Byte]): Seq[Event] = {
+    new String(bytes)
+      .split("\n")
+      .toSeq
+      .flatMap(line => decodeEvent(key, line.trim))
+  }
+
+  private def decodeEvent(key: String, line: String) = {
     val parts = line.trim.split(" ")
     if (parts.length < 4) {
       None
@@ -101,7 +106,7 @@ class CabspottingDecoder extends Decoder[Event] {
         Some(Event(key, LatLng.degrees(lat, lng).toPoint, time))
       } catch {
         //Error in original data, skip record.
-        case e: IllegalArgumentException => None
+        case _: IllegalArgumentException => None
       }
     }
   }

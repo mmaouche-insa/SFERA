@@ -37,7 +37,7 @@ import scala.util.Random
 @Op(
   category = "Attack",
   help = "Re-identification attack based on the MMC matching")
-class MMCReIdentOp @Inject()(env: SparkleEnv) extends Operator[MMCReIdentIn, MMCReIdentOut] with SparkleOperator {
+class MMCReIdentOp extends Operator[MMCReIdentIn, MMCReIdentOut] with SparkleOperator {
 
 
   override def execute(in: MMCReIdentIn, ctx: OpContext): MMCReIdentOut = {
@@ -300,9 +300,9 @@ case class MMCReIdentIn(
                          @Arg(help = "Input test dataset")
                           test: Dataset,
                          @Arg(help = "Clustering parameter : minimum points in a cluster")
-                          minPts: Int = 10,
+                          minPts: Int = 1,
                          @Arg(help = "Clustering parameter : maximum size cluster")
-                          diameter: Distance = new Distance(3000),
+                          diameter: Distance = new Distance(200),
                          @Arg(help = "Clustering parameter : maximum cluster duration")
                           duration : Duration = new Duration(3600),
                          @Arg(help = "Attack")

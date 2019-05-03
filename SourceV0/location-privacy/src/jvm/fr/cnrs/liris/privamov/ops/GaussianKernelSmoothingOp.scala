@@ -43,7 +43,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
   category = "prepare",
   help = "Apply gaussian kernel smoothing on traces.",
   description = "Apply gaussian kernel smoothing on a trace, attenuating the impact of noisy observations.")
-class GaussianKernelSmoothingOp @Inject()(env: SparkleEnv) extends Operator[GaussianKernelSmoothingIn, GaussianKernelSmoothingOut] with SparkleOperator {
+class GaussianKernelSmoothingOp  extends Operator[GaussianKernelSmoothingIn, GaussianKernelSmoothingOut] with SparkleOperator {
 
   override def execute(in: GaussianKernelSmoothingIn, ctx: OpContext): GaussianKernelSmoothingOut = {
     val data = read(in.data, env)

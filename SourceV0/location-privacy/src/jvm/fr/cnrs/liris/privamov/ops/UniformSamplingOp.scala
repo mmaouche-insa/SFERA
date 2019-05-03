@@ -44,7 +44,7 @@ import scala.util.Random
   category = "prepare",
   help = "Uniformly sample events inside traces.",
   description = "Perform a uniform sampling on traces, keeping each event with a given probability.")
-class UniformSamplingOp @Inject()(env: SparkleEnv) extends Operator[UniformSamplingIn, UniformSamplingOut] with SparkleOperator {
+class UniformSamplingOp extends Operator[UniformSamplingIn, UniformSamplingOut] with SparkleOperator {
 
   override def execute(in: UniformSamplingIn, ctx: OpContext): UniformSamplingOut = {
     val input = read(in.data, env)

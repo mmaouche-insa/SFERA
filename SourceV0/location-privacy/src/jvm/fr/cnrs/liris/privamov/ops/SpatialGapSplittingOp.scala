@@ -41,7 +41,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
 @Op(
   category = "prepare",
   help = "Split traces, when there is a too huge distance between consecutive events.")
-class SpatialGapSplittingOp @Inject()(env: SparkleEnv) extends Operator[SpatialGapSplittingIn, SpatialGapSplittingOut] with SlidingSplitting with SparkleOperator {
+class SpatialGapSplittingOp extends Operator[SpatialGapSplittingIn, SpatialGapSplittingOut] with SlidingSplitting with SparkleOperator {
 
   override def execute(in: SpatialGapSplittingIn, ctx: OpContext): SpatialGapSplittingOut = {
     val split = (buffer: Seq[Event], curr: Event) => buffer.last.point.distance(curr.point) >= in.distance

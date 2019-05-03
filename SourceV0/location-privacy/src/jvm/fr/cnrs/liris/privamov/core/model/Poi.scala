@@ -38,6 +38,8 @@ import com.github.nscala_time.time.Imports._
 import fr.cnrs.liris.common.geo.Point
 import fr.cnrs.liris.common.geo.Distance
 import org.joda.time.Instant
+import fr.cnrs.liris.common.util.Identified
+
 
 /**
  * A Point of Interest is a place where a user has spent some time. We only keep summarized information here (instead
@@ -52,14 +54,15 @@ import org.joda.time.Instant
  * @param end      Last time the user has been inside inside this POI.
  * @param diameter Diameter of this POI (i.e., the distance between the two farthest points).
  */
-case class Poi(
+case class Poi  (
   user: String,
   centroid: Point,
   size: Int,
   start: Instant,
   end: Instant,
-  diameter: Distance) {
+  diameter: Distance) extends Identified {
 
+  override def id: String = user
   /**
    * Return the total amount of time spent inside this POI.
    */

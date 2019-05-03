@@ -44,7 +44,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
   help = "Compute statistics about points of interest",
   description = "Compute statistics about the POIs that can be extracted from a trace, using a classical DJ-clustering algorithm.",
   category = "metric")
-class PoisAnalyzerOp @Inject()(env: SparkleEnv) extends Operator[PoisAnalyzerIn, PoisAnalyzerOut] with SparkleOperator {
+class PoisAnalyzerOp  extends Operator[PoisAnalyzerIn, PoisAnalyzerOut] with SparkleOperator {
 
   override def execute(in: PoisAnalyzerIn, ctx: OpContext): PoisAnalyzerOut = {
     val data = read(in.data, env)

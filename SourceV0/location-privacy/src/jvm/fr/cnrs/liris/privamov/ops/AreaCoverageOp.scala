@@ -32,22 +32,25 @@
 
 package fr.cnrs.liris.privamov.ops
 
+import java.util.IllegalFormatWidthException
+
 import com.google.common.geometry.S2CellId
 import com.google.inject.Inject
 import fr.cnrs.liris.accio.core.api._
 import fr.cnrs.liris.common.util.Requirements._
 import fr.cnrs.liris.privamov.core.model.Trace
 import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
+import org.joda.time.Duration
 
 @Op(
   category = "metric",
   help = "Compute area coverage difference between two datasets of traces")
-class AreaCoverageOp @Inject()(env: SparkleEnv) extends Operator[AreaCoverageIn, AreaCoverageOut] with SparkleOperator {
+class AreaCoverageOp extends Operator[AreaCoverageIn, AreaCoverageOut] with SparkleOperator {
 
   override def execute(in: AreaCoverageIn, ctx: OpContext): AreaCoverageOut = {
     val train = read(in.train, env)
     val test = read(in.test, env)
-    val metrics = train.zip(test).map { case (ref, res) => evaluate(ref, res, in.level) }.toArray
+    val metrics = train.zip(test).map { case (ref, res) => evaluate(ref, res, in.level,in.width) }.toArray
     val precision = metrics.map { case (k, v) => k -> v._1 }.toMap
     val recall = metrics.map { case (k, v) => k -> v._2 }.toMap
    val  fscore = metrics.map { case (k, v) => k -> v._3 }.toMap
@@ -62,20 +65,27 @@ class AreaCoverageOp @Inject()(env: SparkleEnv) extends Operator[AreaCoverageIn,
     )
   }
 
-  private def evaluate(ref: Trace, res: Trace, level: Int) = {
+  private def evaluate(ref: Trace, res: Trace, level: Int,width : Option[Duration]) = {
     requireState(ref.id == res.id, s"Trace mismatch: ${ref.id} / ${res.id}")
-    val refCells = getCells(ref, level)
-    val resCells = getCells(res, level)
+    val refCells = getCells(ref, level,width)
+    val resCells = getCells(res, level,width)
     val matched = resCells.intersect(refCells).size
     (ref.id, (MetricUtils.precision(resCells.size, matched), MetricUtils.recall(refCells.size, matched), MetricUtils.fscore(refCells.size, resCells.size, matched)))
   }
 
-  private def getCells(trace: Trace, level: Int) =
-    trace.events.map(rec => S2CellId.fromLatLng(rec.point.toLatLng.toS2).parent(level)).toSet
+  private def getCells(trace: Trace, level: Int,width : Option[Duration]) =
+    trace.events.map{
+      rec =>
+      width match{
+        case None => S2CellId.fromLatLng(rec.point.toLatLng.toS2).parent(level).toString
+        case Some(w) => S2CellId.fromLatLng(rec.point.toLatLng.toS2).parent(level).toString + "|" + (rec.time.getMillis/w.getMillis)
+      }
+    }.toSet
 }
 
 case class AreaCoverageIn(
   @Arg(help = "S2 cells levels") level: Int,
+  @Arg(help = "Optional With for Spatio-Temporal regions (default = infinite)") width: Option[Duration],
   @Arg(help = "Train dataset") train: Dataset,
   @Arg(help = "Test dataset") test: Dataset)
 

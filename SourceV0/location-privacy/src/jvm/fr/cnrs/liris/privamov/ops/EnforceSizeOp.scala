@@ -1,6 +1,6 @@
 /*
- * Copyright LIRIS-CNRS (2016)
- * Contributors: Vincent Primault <vincent.primault@liris.cnrs.fr>
+ * Copyright LIRIS-CNRS (2017)
+ * Contributors: Mohamed Maouche  <mohamed.maouchet@liris.cnrs.fr>
  *
  * This software is a computer program whose purpose is to study location privacy.
  *
@@ -41,7 +41,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
   category = "prepare",
   help = "Enforce a given size on each trace.",
   description = "Larger traces will be truncated, smaller traces will be discarded.")
-class EnforceSizeOp @Inject()(env: SparkleEnv) extends Operator[EnforceSizeIn, EnforceSizeOut] with SparkleOperator {
+class EnforceSizeOp  extends Operator[EnforceSizeIn, EnforceSizeOut] with SparkleOperator {
 
   override def execute(in: EnforceSizeIn, ctx: OpContext): EnforceSizeOut = {
     val data = read(in.data, env)

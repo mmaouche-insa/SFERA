@@ -35,12 +35,12 @@ import scala.util.Random
 @Op(
   category = "prepare",
   help = "Splits the traces based on the starting and ending time")
-class TemporalSplittingOp @Inject()(env: SparkleEnv) extends Operator[TemporalSplittingIn, TemporalSplittingOut] with SparkleOperator {
+class TemporalSplittingOp  extends Operator[TemporalSplittingIn, TemporalSplittingOut] with SparkleOperator {
 
 
   override def execute(in: TemporalSplittingIn, ctx: OpContext): TemporalSplittingOut = {
     // read the data
-    val ds = read(in.data, env)
+    val ds = read[Trace](in.data)
     val output = split(ds,in.divider,in.complement)
     val nbEvents = ds.map(trace => trace.user -> trace.events.length)
     val nbEventsNew = output.map(trace => trace.user -> trace.events.length)

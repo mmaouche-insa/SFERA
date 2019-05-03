@@ -78,4 +78,11 @@ object StringUtils {
 
   def explode(str: Option[String], delimiter: String): Set[String] =
     str.map(explode(_, delimiter)).getOrElse(Set.empty[String])
+
+  def extractUser(id : String) : String = {
+    if (id == "-") "-" else id.split("-")(0)
+  }
+  def compareUser(id1 : String , id2 : String) : Boolean = {
+    extractUser(id1) == extractUser(id2)
+  }
 }

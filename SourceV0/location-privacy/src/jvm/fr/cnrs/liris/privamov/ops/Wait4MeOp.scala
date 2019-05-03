@@ -26,7 +26,7 @@ import com.google.common.io.Resources
 import com.google.inject.Inject
 import fr.cnrs.liris.accio.core.api._
 import fr.cnrs.liris.common.geo.{Distance, Point}
-import fr.cnrs.liris.privamov.core.io.{CsvSink, DataSink}
+import fr.cnrs.liris.privamov.core.io.{CsvSink, DataSink, TraceCodec}
 import fr.cnrs.liris.privamov.core.model.{Event, Trace}
 import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
 import org.joda.time.{Duration, Instant}
@@ -45,7 +45,7 @@ import scala.collection.mutable
 @Op(
   help = "Time-tolerant k-anonymization",
   category = "lppm")
-class Wait4MeOp @Inject()(env: SparkleEnv) extends Operator[Wait4MeIn, Wait4MeOut] with SparkleOperator {
+class Wait4MeOp extends Operator[Wait4MeIn, Wait4MeOut] with SparkleOperator {
 
   override def execute(in: Wait4MeIn, ctx: OpContext): Wait4MeOut = {
     val input = read(in.data, env)
@@ -97,7 +97,7 @@ class Wait4MeOp @Inject()(env: SparkleEnv) extends Operator[Wait4MeIn, Wait4MeOu
 
       // We convert back the result into a conventional dataset format.
       val w4mOutputPath = tmpDir.resolve(f"out_${in.k}_${"%.3f".formatLocal(Locale.ENGLISH, in.delta.meters)}.txt").toAbsolutePath
-      val output = writeOutput(input.keys , w4mOutputPath, ctx.workDir)
+       val output = writeOutput(input.keys , w4mOutputPath, ctx.workDir)
 
       // We extract metrics from the captured stdout. This is quite ugly, but this works.
       // After header and progress information, result looks like:
@@ -153,7 +153,7 @@ class Wait4MeOp @Inject()(env: SparkleEnv) extends Operator[Wait4MeIn, Wait4MeOu
     var currIdx: Option[Int] = None
     val events = mutable.ListBuffer.empty[Event]
     val outputUri = workDir.resolve("data").toAbsolutePath.toString
-    val sink = CsvSink(outputUri, failOnNonEmptyDirectory = false)
+    val sink = new CsvSink[Trace](outputUri,new TraceCodec ,failOnNonEmptyDirectory = false)
     Files.readAllLines(w4mOutputPath).asScala.foreach { line =>
       val parts = line.trim.split("\t")
       val idx = parts(0).toInt
@@ -200,13 +200,20 @@ case class Wait4MeOut(
 private class W4MSink(uri: String, keysIndex: Map[String, Int]) extends DataSink[Trace] {
   val path = Paths.get(uri)
   Files.createDirectories(path.getParent)
-
-  override def write(elements: TraversableOnce[Trace]): Unit = synchronized {
+  override def write(key: String, elements: Seq[Trace]): Unit = synchronized {
+    val lines = elements.flatMap { trace =>
+      trace.events.map { event =>
+        s"${keysIndex(trace.id)}\t${event.time.getMillis / 1000}\t${event.point.x}\t${event.point.y}"
+      }
+    }
+    Files.write(path, lines.asJava, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
+  }
+ /* override def write(key : String , elements: TraversableOnce[Event]): Unit = synchronized {
     val lines = elements.flatMap { trace =>
       trace.events.map { event =>
         s"${keysIndex(trace.id)}\t${event.time.getMillis / 1000}\t${event.point.x}\t${event.point.y}"
       }
     }.toSeq
     Files.write(path, lines.asJava, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
-  }
+  }*/
 }

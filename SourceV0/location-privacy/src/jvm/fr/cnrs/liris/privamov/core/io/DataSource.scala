@@ -19,26 +19,27 @@
 package fr.cnrs.liris.privamov.core.io
 
 /**
- * A source is responsible for reading elements. Each element is identified by a unique key.
- *
- * @tparam T Elements' type.
- */
+  * A source is responsible for reading elements. Each element is identified by a unique key.
+  *
+  * @tparam T Type of elements being read.
+  */
 trait DataSource[T] {
   /**
-   * Return the list of the keys of elements available in this data source. Each key should be present only once,
-   * but the list should be ordered in a deterministic order.
-   */
+    * Return the list of the keys of elements available in this data source. Each key should be present only once,
+    * but the list should be ordered in a deterministic order.
+    */
   def keys: Seq[String]
 
   /**
-   * Read the element associated with a given key, if any.
-   *
-   * @param key Key.
-   * @return The element stored under that key, if any.
-   */
-  def read(key: String): Option[T]
+    * Read the elements associated with a given key.
+    *
+    * @param key Key.
+    */
+  def read(key: String): Iterable[T]
 }
 
+/*
+GO TO CODEC.scala
 /**
  * A decoder converts a binary (record) into a plain object.
  *
@@ -53,4 +54,4 @@ trait Decoder[T] {
    * @return Plain object
    */
   def decode(key: String, bytes: Array[Byte]): Option[T]
-}
+}*/

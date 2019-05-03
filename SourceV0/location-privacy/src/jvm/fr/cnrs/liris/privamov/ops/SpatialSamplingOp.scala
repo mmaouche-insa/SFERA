@@ -43,7 +43,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
   help = "Enforce a minimum distance between two consecutive events in traces.",
   description = "If the distance is less than a given threshold, records will be discarded until the next point " +
     "that fulfills the minimum distance requirement.")
-class SpatialSamplingOp @Inject()(env: SparkleEnv) extends Operator[SpatialSamplingIn, SpatialSamplingOut] with SlidingSampling with SparkleOperator {
+class SpatialSamplingOp extends Operator[SpatialSamplingIn, SpatialSamplingOut] with SlidingSampling with SparkleOperator {
 
   override def execute(in: SpatialSamplingIn, ctx: OpContext): SpatialSamplingOut = {
     val sample = (prev: Event, curr: Event) => prev.point.distance(curr.point) >= in.distance

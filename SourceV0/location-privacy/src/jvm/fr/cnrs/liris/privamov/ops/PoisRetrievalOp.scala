@@ -43,7 +43,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
 @Op(
   category = "metric",
   help = "Compute POIs retrieval difference between two datasets of traces")
-class PoisRetrievalOp @Inject()(env: SparkleEnv) extends Operator[PoisRetrievalIn, PoisRetrievalOut] with SparkleOperator {
+class PoisRetrievalOp  extends Operator[PoisRetrievalIn, PoisRetrievalOut] with SparkleOperator {
 
   override def execute(in: PoisRetrievalIn, ctx: OpContext): PoisRetrievalOut = {
     val train = read(in.train, env)

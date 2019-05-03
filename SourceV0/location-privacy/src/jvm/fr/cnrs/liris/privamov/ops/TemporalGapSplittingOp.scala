@@ -41,7 +41,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
 @Op(
   category = "prepare",
   help = "Split traces, when there is a too long duration between consecutive events.")
-class TemporalGapSplittingOp @Inject()(env: SparkleEnv) extends Operator[TemporalGapSplittingIn, TemporalGapSplittingOut] with SlidingSplitting with SparkleOperator {
+class TemporalGapSplittingOp  extends Operator[TemporalGapSplittingIn, TemporalGapSplittingOut] with SlidingSplitting with SparkleOperator {
 
   override def execute(in: TemporalGapSplittingIn, ctx: OpContext): TemporalGapSplittingOut = {
     val split = (buffer: Seq[Event], curr: Event) => (buffer.last.time to curr.time).duration >= in.duration

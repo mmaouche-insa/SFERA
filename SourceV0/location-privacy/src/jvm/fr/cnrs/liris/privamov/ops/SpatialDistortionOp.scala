@@ -34,7 +34,7 @@ package fr.cnrs.liris.privamov.ops
 
 import com.google.inject.Inject
 import fr.cnrs.liris.accio.core.api._
-import fr.cnrs.liris.common.geo.Point
+import fr.cnrs.liris.common.geo.{Distance, Point}
 import fr.cnrs.liris.common.stats.AggregatedStats
 import fr.cnrs.liris.common.util.Requirements._
 import fr.cnrs.liris.privamov.core.model.Trace
@@ -43,19 +43,30 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
 @Op(
   category = "metric",
   help = "Compute spatial distortion between two datasets of traces")
-class SpatialDistortionOp @Inject()(env: SparkleEnv) extends Operator[SpatialDistortionIn, SpatialDistortionOut] with SparkleOperator {
+class SpatialDistortionOp  extends Operator[SpatialDistortionIn, SpatialDistortionOut] with SparkleOperator {
 
   override def execute(in: SpatialDistortionIn, ctx: OpContext): SpatialDistortionOut = {
     val train = read(in.train, env)
     val test = read(in.test, env)
-    val metrics = train.zip(test).map { case (ref, res) => evaluate(ref, res, in.interpolate) }.toArray
+    //println(s"keys of train: ${train.keys}, keys of test: ${test.keys}")
+    val metrics = train.zip(test).map {
+      case (ref, res) =>
+        //println(s"LUNCH OF :\t user = ${ref.user}\t length = ${ref.events.size}\t user = ${res.user}\t length = ${res.events.size}  ")
+
+        val stats = evaluate(ref, res, in.interpolate)
+        //println(s"FINISH OF :\t user = ${ref.user}")
+
+        stats
+    }.toArray.toMap
 
 
-   val min = metrics.map { case (k, v) => k -> v.min }.toMap
-   val max = metrics.map { case (k, v) => k -> v.max }.toMap
-   val stddev = metrics.map { case (k, v) => k -> v.stddev }.toMap
-   val avg = metrics.map { case (k, v) => k -> v.avg }.toMap
-    val median = metrics.map { case (k, v) => k -> v.median }.toMap
+    println(s"\n\n Size = ${metrics.values.size}")
+
+   val min = metrics.map { case (k, v) => k -> v.min }
+   val max = metrics.map { case (k, v) => k -> v.max }
+   val stddev = metrics.map { case (k, v) => k -> v.stddev }
+   val avg = metrics.map { case (k, v) => k -> v.avg }
+    val median = metrics.map { case (k, v) => k -> v.median }
     SpatialDistortionOut(
       min ,
       max ,
@@ -83,27 +94,73 @@ class SpatialDistortionOp @Inject()(env: SparkleEnv) extends Operator[SpatialDis
   }
 
   private def evaluateWithoutInterpolation(reference: Seq[Point], result: Trace) =
-    result.events.map(event => Point.nearest(event.point, reference).distance)
+    result.events.par.map(event => Point.nearest(event.point, reference).distance).seq
 
-  private def evaluateWithInterpolation(reference: Seq[Point], result: Trace) = {
+ /* private def evaluateWithInterpolation(reference: Seq[Point], result: Trace) = {
     result.events.map { event =>
       val (a, b) = nearestLine(event.point, reference)
       val projected = if (a == b) a else projectToLine(event.point, a, b)
-      event.point.distance(projected)
+      val d = event.point.distance(projected)
+      println(s"distance = $d  idx = ${result.events.indexOf(event)}")
+      d
     }
-  }
+  }*/
 
-  private def nearestLine(point: Point, line: Seq[Point]) = {
+  /*private def nearestLine(point: Point, line: Seq[Point]) = {
     val a = Point.nearest(point, line)
     val b = if (a.idx == 0) {
       line(1)
     } else if (a.idx == line.size - 1) {
       line(a.idx - 1)
     } else {
-      Point.nearest(point, Seq(line(a.idx - 1), line(a.idx + 1))).point
+      //Point.nearest(point, Seq(line(a.idx - 1), line(a.idx + 1))).point
+      val b1 = line(a.idx - 1)
+        val b2 = line(a.idx + 1)
+      val h1 = projectToLine(point,a.point,b1)
+      val h2 = projectToLine(point,a.point,b2)
+      println(s"h1 : ${point.distance(h1)} h2 : ${point.distance(h2)}")
+      if(point.distance(h1)<point.distance(h2)) b1 else b2
     } //TODO: should check for previous/next non-identical point
     (a.point, b)
+  }*/
+
+   private def evaluateWithInterpolation(reference: Seq[Point], result: Trace) = {
+   result.events.par.map { event =>
+     val (a, b) = nearestLine(event.point, reference)
+     val projected =  projectToLine(event.point, a, b)
+     val d = event.point.distance(projected)
+    // println(s"distance = $d  idx = ${result.events.indexOf(event)}  lat = ${projected.toLatLng.lat}  lng = ${projected.toLatLng.lng}")
+     d
+   }.seq
+ }
+
+  private def nearestLine(point: Point, line: Seq[Point]) = {
+  var min : Option[Distance] = None
+    var p1 = line.head
+    var p2 = line.last
+    val lineWithIndex = line.zipWithIndex
+    lineWithIndex.foreach{
+    case (pt,i) =>
+      if(i != line.length -1) {
+        val h = projectToLine(point,pt,lineWithIndex(i+1)._1)
+        val d = point.distance(h)
+        min match {
+          case None => min = Some(d)
+          case Some(dprime) => {
+            if(d < dprime ) {
+              min = Some(d)
+              p1 = pt
+              p2 = lineWithIndex(i+1)._1
+            }
+          }
+        }
+      }
+
   }
+  (p1,p2)
+}
+
+
 
   private def projectToLine(point: Point, a: Point, b: Point, snap: Boolean = true) = {
     // http://stackoverflow.com/questions/1459368/snap-point-to-a-line-java

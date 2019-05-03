@@ -32,6 +32,7 @@
 
 package fr.cnrs.liris.common.util
 
+
 object MathUtils {
   def roundAt1(v: Double): Double = (v * 10).round.toDouble / 10
 
@@ -48,5 +49,49 @@ object MathUtils {
   def roundAt(v: Double, places: Int): Double = {
     val factor = math.pow(10, places)
     (v * factor).round.toDouble / factor
+  }
+
+  def nextPowerOf2(x : Int) : Int = {
+    val pos = math.log(x)
+    val c = math.ceil(pos)
+    math.pow(2,c).toInt
+  }
+
+
+  def hilbert_xy2d(n : Int, i : Int,j : Int) : Int = {
+    var x = j
+    var y = i
+    var rx = 0
+    var ry = 0
+    var d = 0
+    var s = n/2
+    while(s>0)
+    {
+      rx = if ((x & s) > 0) 1 else 0
+      ry = if ((y & s) > 0) 1 else 0
+      d += s * s * ((3 * rx) ^ ry)
+      val out = rotation(s, x, y, rx, ry)
+      x = out._1
+      y = out._2
+      s=s/2
+    }
+    d
+  }
+
+    //rotate/flip a quadrant appropriately (returns (x,y)
+    def rotation(n : Int , x : Int , y : Int, rx : Int, ry : Int): (Int,Int) = {
+      var outx = x
+      var outy = y
+      if (ry == 0) {
+        if (rx == 1) {
+           outx = n-1 - outx;
+          outy = n-1 - outy;
+        }
+        //Swap x and y
+        val t = outx
+        outx = outy
+        outy = t
+      }
+      (outx,outy)
   }
 }

@@ -40,7 +40,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
 @Op(
   category = "prepare",
   help = "Split traces, ensuring a maximum size for each one.")
-class SizeSplittingOp @Inject()(env: SparkleEnv) extends Operator[SizeSplittingIn, SizeSplittingOut] with SlidingSplitting with SparkleOperator {
+class SizeSplittingOp  extends Operator[SizeSplittingIn, SizeSplittingOut] with SlidingSplitting with SparkleOperator {
 
   override def execute(in: SizeSplittingIn, ctx: OpContext): SizeSplittingOut = {
     val split = (buffer: Seq[Event], curr: Event) => buffer.size >= in.size

@@ -43,7 +43,7 @@ import fr.cnrs.liris.privamov.core.sparkle.SparkleEnv
   help = "Enforce a minimum duration between two consecutive events in traces.",
   description = "If the duration is less than a given threshold, events will be discarded until the next point " +
     "that fulfills the minimum duration requirement.")
-class TemporalSamplingOp @Inject()(env: SparkleEnv) extends Operator[TemporalSamplingIn, TemporalSamplingOut] with SlidingSampling with SparkleOperator {
+class TemporalSamplingOp  extends Operator[TemporalSamplingIn, TemporalSamplingOut] with SlidingSampling with SparkleOperator {
 
   override def execute(in: TemporalSamplingIn, ctx: OpContext): TemporalSamplingOut = {
     val sample = (prev: Event, curr: Event) => (prev.time to curr.time).duration >= in.duration
