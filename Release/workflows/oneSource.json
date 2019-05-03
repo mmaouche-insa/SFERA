@@ -48,9 +48,9 @@
         }
       }
     },
-    {
-      "op": "MatMatching",
-      "name": "APAttack",
+     {
+      "op": "MatMatchingKSets",
+      "name" : "APAttack",
       "inputs": {
         "train": {
           "reference": "SelectPortionSplittingtrain/output"
@@ -58,74 +58,19 @@
         "test": {
           "reference": "SelectPortionSplittingtest/output"
         },
-        "distanceType": {
-          "param": "distanceType",
-          "default_value": -51
-        },
-        "cellSize": {
-          "param": "cellSize",
-          "default_value": "800.meters"
-        },
-        "matrixType": {
-          "param": "matrixType",
-          "default_value": "full"
-        },
-        "lat1": {
-          "value": "-61"
-        },
-        "lng1": {
-          "value": "-131"
-        },
-        "lat2": {
-          "value": "80"
-        },
-        "lng2": {
-          "value": "171"
-        }
-      }
-    },
-    {
-      "op": "PoisReident",
-      "name" : "POIAttack",
-      "inputs": {
-        "diameter" : {"param": "diameter" ,
-                    "default_value" : "200.meters"
+        "distanceType": {"param": "distanceType" ,
+                    "default_value" : -51
                     },
-               "duration" : {"param": "duration" ,
-                    "default_value" : "60.minutes"
+        "cellSize": {"param": "cellSize" ,
+                    "default_value" : "800.meters"
                     },
-        "train": {
-          "reference": "SelectPortionSplittingtrain/output"
-        },
-        "test": {
-          "reference": "SelectPortionSplittingtest/output"
-        }
-      }
-    },
-      {
-      "op": "MMCReIdent",
-      "name" : "PITAttack",
-      "inputs": {
-        "train": {
-          "reference": "SelectPortionSplittingtrain/output"
-        },
-        "test": {
-          "reference": "SelectPortionSplittingtest/output"
-        },
-        "duration" : {"param": "duration" ,
-                    "default_value" : "1.hours"
+                            "matrixType": {"param": "matrixType" ,
+                    "default_value" : "full"
                     },
-           "diameter" : {"param": "diameter" ,
-                    "default_value" : "200.meters"
-                    },
-                               "minPts" : {"param": "minPts" ,
-                    "default_value" : 1
-                    },
-        "attack" : {"param": "attack" ,
-                    "default_value" : "gambs"
-                    }
-    
-    
+        "lat1": {"value": "-61"},
+        "lng1": {"value": "-131"},
+        "lat2": {"value": "80"},
+        "lng2": {"value": "171"}
       }
     }
   ]

@@ -1,6 +1,5 @@
-
 {
-  "name": "One dataset source",
+  "name": "Two datasets source",
   "owner": "Mohamed Maouche <mohamed.maouche@insa-lyon.fr",
   "graph": [
     {
@@ -8,7 +7,7 @@
       "name": "EventSourceKD",
       "inputs": {
         "url": {
-          "param": "urlKD",
+          "param": "url",
           "default_value": "/data/cabSpotting"
         },
         "kind": {
@@ -21,7 +20,7 @@
       "name": "EventSourceUD",
       "inputs": {
         "url": {
-          "param": "urlUD",
+          "param": "url",
           "default_value": "/data/cabSpotting"
         },
         "kind": {
@@ -29,118 +28,29 @@
         }
       }
     },
-    {
-      "op": "SelectPortionSplitting",
-      "name": "SelectPortionSplittingtrain",
+ {
+      "op": "MatMatchingKSets",
+      "name" : "APAttack",
       "inputs": {
-        "data": {
+        "train": {
           "reference": "EventSourceKD/data"
         },
-        "start": {
-          "param": "startTrain",
-          "default_value": 0.0
-        },
-        "end": {
-          "param": "endTrain",
-          "default_value": 1.0
-        }
-      }
-    },
-    {
-      "op": "SelectPortionSplitting",
-      "name": "SelectPortionSplittingtest",
-      "inputs": {
-        "data": {
+        "test": {
           "reference": "EventSourceUD/data"
         },
-        "start": {
-          "param": "startTest",
-          "default_value": 0.0
-        },
-        "end": {
-          "param": "endTest",
-          "default_value": 1.0
-        }
-      }
-    },
-    {
-      "op": "MatMatching",
-      "name": "APAttack",
-      "inputs": {
-        "train": {
-          "reference": "SelectPortionSplittingtrain/output"
-        },
-        "test": {
-          "reference": "SelectPortionSplittingtest/output"
-        },
-        "distanceType": {
-          "param": "distanceType",
-          "default_value": -51
-        },
-        "cellSize": {
-          "param": "cellSize",
-          "default_value": "800.meters"
-        },
-        "matrixType": {
-          "param": "matrixType",
-          "default_value": "full"
-        },
-        "lat1": {
-          "value": "-61"
-        },
-        "lng1": {
-          "value": "-131"
-        },
-        "lat2": {
-          "value": "80"
-        },
-        "lng2": {
-          "value": "171"
-        }
-      }
-    },
-    {
-      "op": "PoisReident",
-      "name" : "POIAttack",
-      "inputs": {
-        "diameter" : {"param": "diameter" ,
-                    "default_value" : "200.meters"
+        "distanceType": {"param": "distanceType" ,
+                    "default_value" : -51
                     },
-               "duration" : {"param": "duration" ,
-                    "default_value" : "60.minutes"
+        "cellSize": {"param": "cellSize" ,
+                    "default_value" : "800.meters"
                     },
-        "train": {
-          "reference": "SelectPortionSplittingtrain/output"
-        },
-        "test": {
-          "reference": "SelectPortionSplittingtest/output"
-        }
-      }
-    },
-      {
-      "op": "MMCReIdent",
-      "name" : "PITAttack",
-      "inputs": {
-        "train": {
-          "reference": "SelectPortionSplittingtrain/output"
-        },
-        "test": {
-          "reference": "SelectPortionSplittingtest/output"
-        },
-        "duration" : {"param": "duration" ,
-                    "default_value" : "1.hours"
+                            "matrixType": {"param": "matrixType" ,
+                    "default_value" : "full"
                     },
-           "diameter" : {"param": "diameter" ,
-                    "default_value" : "200.meters"
-                    },
-                               "minPts" : {"param": "minPts" ,
-                    "default_value" : 1
-                    },
-        "attack" : {"param": "attack" ,
-                    "default_value" : "gambs"
-                    }
-    
-    
+        "lat1": {"value": "-61"},
+        "lng1": {"value": "-131"},
+        "lat2": {"value": "80"},
+        "lng2": {"value": "171"}
       }
     }
   ]
